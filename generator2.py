@@ -1,4 +1,4 @@
-import perlin as prl
+import perlin2 as prl
 
 import numpy as np
 

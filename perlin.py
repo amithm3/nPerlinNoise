@@ -1,197 +1,149 @@
+import tempfile as tf
+from abc import ABCMeta, abstractmethod
+
 import numpy as np
 import numexpr as ne
+from numpy.lib import format as fm
+
+rnd = np.random
 
 
-class Perlin1D:
-    def __init__(self, frequency=None, seed=None):
-        if frequency is None:
-            frequency = 2
-        self.frequency = frequency
-        self.amp = 100 / (self.frequency - 1)
+def iterable(var):
+    try:
+        iter(var)
+        return True
+    except TypeError:
+        return False
+
+
+class NumpyDataCache:
+    def __new__(cls, array: "np.ndarray") -> np.memmap:
+        return cls.write(array)
+
+    @classmethod
+    def write(cls, array: "np.ndarray") -> np.memmap:
+        file = tf.NamedTemporaryFile(suffix='.npy')
+        np.save(file, array)
+        file.seek(0)
+        fm.read_magic(file)
+        fm.read_array_header_1_0(file)
+        tell = file.tell()
+        memMap = np.memmap(file, mode='r+', shape=array.shape, dtype=array.dtype, offset=tell)
+        memMap.file = file
+        memMap.tell = tell
+
+        return memMap
+
+
+class Perlin(metaclass=ABCMeta):
+    __DIMENSION__: int
+
+    def __init__(self, frequency: int, seed: int = None, waveLength: int = 100):
+        assert type(frequency) is int and frequency > 1
+        assert seed is None or (type(seed) is int and 2 ** 32 > seed > 0)
+        assert type(waveLength) is int and waveLength > 1
+
         if seed is None:
-            self.seed = np.random.randint(0, 2 ** 16)
+            seed = 2 ** 16 + rnd.randint(-(2 ** 16), 2 ** 16)
+
+        self._seed = seed
+        self._frequency = frequency
+        self._waveLength = waveLength
+
+        self._fabric: np.memmap
+
+        rnd.seed(self._seed)
+        self._extendFabric(initialize=True)
+        self.amp = waveLength / (self._frequency - 1)
+
+    def noise(self, *coords, checkFormat=True):
+        assert 0 < (length := len(coords)) <= self.__DIMENSION__
+        coords = [*coords, *[[]] * (self.__DIMENSION__ - length)]
+        if checkFormat:
+            maxLength = 0
+            for d in range(self.__DIMENSION__):
+                if not iterable(coords[d]):
+                    coords[d] = [coords[d]]
+                elif not coords[d]:
+                    coords[d] = [0]
+                if (l := len(coords[d])) > maxLength:
+                    maxLength = l
+            for d in range(self.__DIMENSION__):
+                stretch, left = divmod(maxLength, len(coords[d]))
+                _coords = []
+                for c in coords[d]:
+                    _coords.extend([c] * stretch)
+                _coords.extend([coords[d][-1]] * left)
+                coords[d] = _coords
+
+        coords = np.array(coords)
+        normalizedCoord = coords / self.amp
+        lowerIndex = np.floor(normalizedCoord).astype(np.int32)
+        while lowerIndex.max() >= len(self._fabric) - 1: self._extendFabric()
+
+        bound = tuple([tuple([slice(x := int(low), x + 2) for low in i]) for i in zip(*lowerIndex)])
+        bSpace = np.array([self._fabric[b] for b in bound])
+        relativeCoord = normalizedCoord - lowerIndex
+
+        return self._interpolation(bSpace, relativeCoord)
+
+    def _extendFabric(self, initialize=False):
+        if initialize:
+            self._fabric = NumpyDataCache(rnd.random([self._frequency] * self.__DIMENSION__).astype(np.float32))
         else:
-            self.seed = seed
-        np.random.seed(self.seed)
-        self.fabric = np.random.random(self.frequency).astype(np.float32)
+            __fabric = NumpyDataCache(np.zeros(np.array(self._fabric.shape) * 2, self._fabric.dtype))
+            __fabric[tuple([slice(s) for s in self._fabric.shape])] = self._fabric
+            shape = self.__findShapeForExt(self._fabric.shape)
+            for os, bs in zip(*shape):
+                __fabric[os] = rnd.random(bs).astype(np.float32)
+            __fabric.flush()
+            self._fabric = __fabric
 
-        self.appender = [[[0]], [[1]]]
-
-    def extend_fabric(self, scale):
-        for i in range(scale):
-            self.fabric = np.concatenate((self.fabric, np.random.random(self.frequency - 1).astype(np.float32)), axis=0)
-
-    def noise(self, x):
-        atx = np.array([x]) / self.amp
-        if np.max(atx) >= self.fabric.shape[0]:
-            self.extend_fabric(int(np.max(atx) // self.fabric.shape[0]))
-        x = atx.astype(np.int32)
-        index = (x + self.appender).transpose()
-        max_i = index.max()
-        if max_i >= self.fabric.shape[0]:
-            self.extend_fabric(int((max_i - self.fabric.shape[0]) / (self.frequency - 1)) + 1)
-        atindex = self.fabric[index[:, 0]]
-
-        return self.wrap(atindex, atx - x)
+    @abstractmethod
+    def _interpolation(self, bSpace, relativeCoord):
+        pass
 
     @staticmethod
-    def wrap(atindex, ata):
-        ata = ata.astype(np.float32)
-        return Perlin1D.smooth_wrap(ata) * (atindex[:, 1] - atindex[:, 0]) + atindex[:, 0]
+    def _smoothInterpolation(a):
+        return ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a})
 
     @staticmethod
-    def smooth_wrap(a):
-        return ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)")
+    def __findShapeForExt(shape):
+        outShape = []
+        baseShape = []
+        for i, s in enumerate(shape):
+            bS = (np.array(shape[:i]) * 2).tolist() + list(shape[i:])
+            outShape.append(tuple([slice(*sorted((start, stop)))
+                                   for start, stop in zip(bS, [*[0] * i, bS[i] * 2, *[0] * (s - i)])]))
+            baseShape.append(bS)
+
+        return outShape, baseShape
 
 
-class Perlin2D:
-    def __init__(self, frequency=None, seed=None):
-        if frequency is None:
-            frequency = 2
-        self.frequency = frequency
-        self.amp = 100 / (self.frequency - 1)
-        if seed is None:
-            self.seed = np.random.randint(0, 2 ** 16)
-        else:
-            self.seed = seed
-        np.random.seed(seed)
-        self.fabric = np.random.random((self.frequency, self.frequency)).astype(np.float32)
+class Perlin1D(Perlin):
+    __DIMENSION__ = 1
 
-        self.appender = np.array([[[0], [0]], [[1], [0]], [[0], [1]], [[1], [1]]])
+    def _interpolation(self, bSpace, relativeCoord):
+        heightStretch = bSpace[:, 1] - bSpace[:, 0]
 
-    def extend_fabric(self, scale):
-        for i in range(scale):
-            self.fabric = np.concatenate(
-                (self.fabric, np.random.random((self.fabric.shape[0], self.frequency - 1)).astype(np.float32)), axis=1)
-            self.fabric = np.concatenate(
-                (self.fabric, np.random.random((self.frequency - 1, self.fabric.shape[1])).astype(np.float32)), axis=0)
-
-    def noise(self, x, y):
-        atxy = np.array([x, y]) / self.amp
-        xy = atxy.astype(np.int32)
-        index = (xy + self.appender).transpose()
-        max_i = index.max()
-        if max_i >= self.fabric.shape[0]:
-            self.extend_fabric(int((max_i - self.fabric.shape[0]) / (self.frequency - 1)) + 1)
-        atindex = self.fabric[index[:, 1], index[:, 0]]
-
-        return self.wrap(atindex, atxy - xy)
-
-    @staticmethod
-    def wrap(atindex, atab):
-        intermediate = Perlin1D.wrap(atindex.reshape((-1, 2)), atab[0].repeat(2)).reshape(atindex.shape[0], 2)
-
-        return Perlin1D.wrap(intermediate, atab[1])
+        return self._smoothInterpolation(relativeCoord) * heightStretch + bSpace[:, 0]
 
 
-class Perlin3D:
-    def __init__(self, frequency=None, seed=None):
-        if frequency is None:
-            frequency = 2
-        self.frequency = frequency
-        self.amp = 100 / (self.frequency - 1)
-        if seed is None:
-            self.seed = np.random.randint(0, 2 ** 16)
-        else:
-            self.seed = seed
-        np.random.seed(seed)
-        self.fabric = np.random.random((self.frequency, self.frequency, self.frequency)).astype(np.float32)
+class Perlin2D(Perlin):
+    __DIMENSION__ = 2
 
-        self.appender = np.array([[[0], [0], [0]], [[1], [0], [0]], [[0], [1], [0]], [[1], [1], [0]],
-                                  [[0], [0], [1]], [[1], [0], [1]], [[0], [1], [1]], [[1], [1], [1]]])
+    def _interpolation(self, bSpace, relativeCoord):
+        bSpace.resize([np.prod(bSpace.shape[:2]), 2])
+        bSpace = Perlin1D._interpolation(self, bSpace, relativeCoord[1].repeat(2))
+        bSpace.resize([len(relativeCoord[0]), 2])
 
-    def extend_fabric(self, scale):
-        for i in range(scale):
-            self.fabric = np.concatenate((self.fabric, np.random.random(
-                (self.fabric.shape[0], self.fabric.shape[1], self.frequency - 1)).astype(np.float32)), axis=2)
-            self.fabric = np.concatenate((self.fabric, np.random.random(
-                (self.fabric.shape[0], self.frequency - 1, self.fabric.shape[2])).astype(np.float32)), axis=1)
-            self.fabric = np.concatenate((self.fabric, np.random.random(
-                (self.frequency - 1, self.fabric.shape[1], self.fabric.shape[2])).astype(np.float32)), axis=0)
-
-    def noise(self, x, y, z):
-        atxyz = np.array([x, y, z]) / self.amp
-        xyz = atxyz.astype(np.int32)
-        index = (xyz + self.appender).transpose()
-        max_i = index.max()
-        if max_i >= self.fabric.shape[0]:
-            self.extend_fabric(int((max_i - self.fabric.shape[0]) / (self.frequency - 1)) + 1)
-        atindex = self.fabric[index[:, 2], index[:, 1], index[:, 0]]
-
-        return self.wrap(atindex, atxyz - xyz)
-
-    @staticmethod
-    def wrap(atindex, atabc):
-        intermediate = Perlin2D.wrap(atindex.reshape((-1, 4)), atabc[[0, 1]].repeat(2).reshape((2, -1))). \
-            reshape(atindex.shape[0], 2)
-
-        return Perlin1D.wrap(intermediate, atabc[2])
+        return Perlin1D._interpolation(self, bSpace, relativeCoord[0])
 
 
-class PerlinNoise1D:
-    def __init__(self, octaves=None, seed=None, lacunarity=None, persistence=None):
-        if lacunarity is None:
-            lacunarity = 2
-        if persistence is None:
-            persistence = 0.5
-        if octaves is None:
-            octaves = 8
-        self.octaves = octaves
-        self.lacunarity = lacunarity
-        self.persistence = persistence
-        if seed is None:
-            self.seed = np.random.randint(0, 2 ** 16)
-        else:
-            self.seed = seed
-        self.perlins = [Perlin1D(self.lacunarity ** i, self.seed) for i in range(1, self.octaves + 1)]
-        self.amplitude = [self.persistence ** i for i in range(1, self.octaves + 1)]
+class Perlin3D(Perlin):
+    __DIMENSION__ = 3
 
-    def noise(self, x):
-        return np.sum([self.perlins[i - 1].noise(x) * self.amplitude[i - 1] for i in range(1, self.octaves + 1)],
-                      axis=0)
-
-
-class PerlinNoise2D:
-    def __init__(self, octaves=None, seed=None, lacunarity=None, persistence=None):
-        if lacunarity is None:
-            lacunarity = 2
-        if persistence is None:
-            persistence = 0.5
-        if octaves is None:
-            octaves = 8
-        self.octaves = octaves
-        self.lacunarity = lacunarity
-        self.persistence = persistence
-        if seed is None:
-            self.seed = np.random.randint(0, 2 ** 16)
-        else:
-            self.seed = seed
-        self.perlins = [Perlin2D(self.lacunarity ** i, self.seed) for i in range(1, self.octaves + 1)]
-        self.amplitude = [self.persistence ** i for i in range(1, self.octaves + 1)]
-
-    def noise(self, x, y):
-        return np.sum([self.perlins[i - 1].noise(x, y) * self.amplitude[i - 1] for i in range(1, self.octaves + 1)],
-                      axis=0)
-
-
-class PerlinNoise3D:
-    def __init__(self, octaves=None, seed=None, lacunarity=None, persistence=None):
-        if lacunarity is None:
-            lacunarity = 2
-        if persistence is None:
-            persistence = 0.5
-        if octaves is None:
-            octaves = 8
-        self.octaves = octaves
-        self.lacunarity = lacunarity
-        self.persistence = persistence
-        if seed is None:
-            self.seed = np.random.randint(0, 2 ** 16)
-        else:
-            self.seed = seed
-        self.perlins = [Perlin3D(self.lacunarity ** i, self.seed) for i in range(1, self.octaves + 1)]
-        self.amplitude = [self.persistence ** i for i in range(1, self.octaves + 1)]
-
-    def noise(self, x, y, z):
-        return np.sum([self.perlins[i - 1].noise(x, y, z) * self.amplitude[i - 1] for i in range(1, self.octaves + 1)],
-                      axis=0)
+    def _interpolation(self, bSpace, relativeCoord):
+        print(bSpace.shape, relativeCoord.shape)
+        for d in range(self.__DIMENSION__):
+            pass
