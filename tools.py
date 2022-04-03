@@ -13,6 +13,16 @@ def maxlen(_iterables, *, key=None):
         return len(max(_iterables, key=lambda x: len(key(x))))
 
 
+def findCorners(dim):
+    if dim == 1:
+        return [[0], [1]]
+    else:
+        r = findCorners(dim-1)
+        corners = []
+        [[corners.append([c, *cc]) for cc in r] for c in [0, 1]]
+        return corners
+
+
 class RefNDArray(list):
     def __sub__(self, other):
         if iterable(other):

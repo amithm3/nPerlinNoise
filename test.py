@@ -16,18 +16,18 @@ from nPerlin import *
 # ---1D---
 
 # ---2D---
-p2 = Perlin2D()
-xBase = np.linspace(0, 100, 5000)
-yBase = np.linspace(0, 100, 5000)
-x2D, y2D = np.meshgrid(xBase, yBase)
-x, y = x2D.ravel().astype(np.float32), y2D.ravel().astype(np.float32)
-z = p2(x, y)
-try:
-    ax = pyplot.axes(projection="3d")
-    ax.plot_surface(x2D, y2D, z.reshape((len(xBase), len(yBase))), cmap='plasma')
-    ax.set_zlim(-.1, 1.1)
-except NameError:
-    pass
+# p2 = Perlin2D()
+# xBase = np.linspace(0, 100, 1000)
+# yBase = np.linspace(0, 100, 1000)
+# x2D, y2D = np.meshgrid(xBase, yBase)
+# x, y = x2D.ravel().astype(np.float32), y2D.ravel().astype(np.float32)
+# z = p2(x, y)
+# try:
+#     ax = pyplot.axes(projection="3d")
+#     ax.plot_surface(x2D, y2D, z.reshape((len(xBase), len(yBase))), cmap='plasma')
+#     ax.set_zlim(-.1, 1.1)
+# except NameError:
+#     pass
 # ---2D---
 
 # ---3D---

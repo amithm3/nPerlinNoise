@@ -11,7 +11,7 @@ rnd = np.random
 
 class NPerlin(metaclass=ABCMeta):
     __DIMENSION__: int
-    __SPACER__: np.ndarray  # todo: auto generate for n-dims  # todo: improvable?
+    __SPACER__: np.ndarray  # todo: improvable?
 
     @property
     def seed(self):
@@ -114,17 +114,14 @@ class NPerlin(metaclass=ABCMeta):
 
 class Perlin1D(NPerlin):
     __DIMENSION__ = 1
-    __SPACER__ = [[[0]],
-                  [[1]]]
+    __SPACER__ = np.array(findCorners(__DIMENSION__))[:, :, None]
 
 
 class Perlin2D(NPerlin):
     __DIMENSION__ = 2
-    __SPACER__ = np.array([[[0], [0]], [[0], [1]],
-                           [[1], [0]], [[1], [1]]])
+    __SPACER__ = np.array(findCorners(__DIMENSION__))[:, :, None]
 
 
 class Perlin3D(NPerlin):
     __DIMENSION__ = 3
-    __SPACER__ = np.array([[[0], [0], [0]], [[0], [0], [1]], [[0], [1], [0]], [[0], [1], [1]],
-                           [[1], [0], [0]], [[1], [0], [1]], [[1], [1], [0]], [[1], [1], [1]]])
+    __SPACER__ = np.array(findCorners(__DIMENSION__))[:, :, None]
