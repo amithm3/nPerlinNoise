@@ -1,10 +1,11 @@
-from nPerlin import *
-# from matplotlib import pyplot, cm, animation
+from perlin import PerlinNoise
+from matplotlib import pyplot, cm, animation
+import numpy as np
 
 # print(cm.cmaps_listed)
 
 # ---1D---
-# p1 = Perlin1D()
+# p1 = PerlinNoise(1)
 # x = np.linspace(0, 100, 1000)
 # y = p1(x)
 # try:
@@ -16,9 +17,9 @@ from nPerlin import *
 # ---1D---
 
 # ---2D---
-# p2 = Perlin2D()
-# xBase = np.linspace(0, 100, 1000)
-# yBase = np.linspace(0, 100, 1000)
+# p2 = PerlinNoise(2)
+# xBase = np.linspace(0, 200, 200)
+# yBase = np.linspace(0, 200, 200)
 # x2D, y2D = np.meshgrid(xBase, yBase)
 # x, y = x2D.ravel().astype(np.float32), y2D.ravel().astype(np.float32)
 # z = p2(x, y)
@@ -31,26 +32,29 @@ from nPerlin import *
 # ---2D---
 
 # ---3D---
-# p3 = Perlin3D()
-# xBase = np.linspace(0, 200, 35)
-# yBase = np.linspace(0, 200, 35)
-# zBase = np.linspace(-100, 100, 100)
-# x3D, y3D, z3D = np.meshgrid(xBase, yBase, zBase)
-# x, y, z = x3D.ravel(), y3D.ravel(), z3D.ravel()
-# t = p3(x, y, z).reshape((len(xBase), len(yBase), len(zBase)))
+# p3 = PerlinNoise(3, 8)
+# xBase = np.linspace(-49, 49, 35)
+# yBase = np.linspace(-49, 49, 35)
+# # zBase = np.linspace(-49, 49, 100)
+# x3D, y3D = np.meshgrid(xBase, yBase)
+# x, y = x3D.ravel(), y3D.ravel()
+# # t = p3(x, y, z).reshape((len(xBase), len(yBase), len(zBase)))
 # try:
 #     fig = pyplot.figure()
 #     ax = pyplot.axes(projection="3d")
-#     plotted = [ax.plot_surface(x3D[:, :, 0], y3D[:, :, 0], t[:, :, 0], cmap='plasma')]
+#     tt = p3(x, y, 0).reshape((len(xBase), len(yBase)))
+#     plotted = [ax.plot_surface(x3D, y3D, tt, cmap='plasma')]
 #     ax.set_zlim(-.1, 1.1)
 #
 #
 #     def timeStep(i):
+#         global tt
+#         tt = p3(x, y, i-50).reshape((len(xBase), len(yBase)))
 #         plotted[0].remove()
-#         plotted[0] = ax.plot_surface(x3D[:, :, i+1], y3D[:, :, i+1], t[:, :, i+1], cmap='plasma')
+#         plotted[0] = ax.plot_surface(x3D, y3D, tt, cmap='plasma')
 #
 #
-#     anim = animation.FuncAnimation(fig, timeStep, len(t[0][0])-1, interval=1)
+#     anim = animation.FuncAnimation(fig, timeStep, 100, interval=10)
 # except NameError:
 #     pass
 # ---3D---

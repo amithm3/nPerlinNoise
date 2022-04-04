@@ -17,7 +17,7 @@ def findCorners(dim):
     if dim == 1:
         return [[0], [1]]
     else:
-        r = findCorners(dim-1)
+        r = findCorners(dim - 1)
         corners = []
         [[corners.append([c, *cc]) for cc in r] for c in [0, 1]]
         return corners
