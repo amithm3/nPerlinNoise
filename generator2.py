@@ -1,4 +1,4 @@
-import perlin as prl
+import perlin2 as prl
 
 import numpy as np
 
@@ -7,7 +7,7 @@ def classic_noise_3d(*args, gradient=None, noise=None, **kwargs):
     if gradient is None:
         gradient = lambda x, y, z, w: w
     if noise is None:
-        noise = prl.PerlinNoise3D
+        noise = prl.Perlin3D
 
     def generator():
         perlin_noise = noise(*args, **kwargs)
@@ -30,7 +30,7 @@ def classic_noise_2d(*args, gradient=None, noise=None, **kwargs):
     if gradient is None:
         gradient = lambda x, y, z: z
     if noise is None:
-        noise = prl.PerlinNoise2D
+        noise = prl.Perlin2D
 
     def generator():
         perlin_noise = noise(*args, **kwargs)
@@ -53,7 +53,7 @@ def classic_noise_1d(*args, gradient=None, noise=None, **kwargs):
     if gradient is None:
         gradient = lambda x, y: y
     if noise is None:
-        noise = prl.PerlinNoise1D
+        noise = prl.Perlin1D
 
     def generator():
         perlin_noise = noise(*args, **kwargs)
