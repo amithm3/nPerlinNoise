@@ -1,29 +1,61 @@
-from dash import Dash, dcc, html, Input, Output
-import plotly.express as px
-
-app = Dash(__name__)
-
-app.layout = html.Div([
-    html.H4('Animated GDP and population over decades'),
-    html.P("Select an animation:"),
-    dcc.RadioItems(
-        id='animations-x-selection',
-        options=["time"],
-        value='time',
-    ),
-    dcc.Loading(dcc.Graph(id="animations-x-graph"), type="cube")
-])
-
-__DF__ = None
+import numpy as np
+import plotly.graph_objects as go
+import plotly.offline as offline
 
 
-@app.callback(
-    Output("animations-x-graph", "figure"),
-    Input("animations-x-selection", "value"))
-def display_animated_graph(selection):
-    animations = {
-        'time': px.scatter_3d(
-            __DF__, animation_frame=0, log_x=True, size_max=55, range_z=[0, 1],
-            width=700),
+def frame_args(duration):
+    return {
+        "frame": {"duration": duration},
+        "mode": "immediate",
+        "fromcurrent": True,
+        "transition": {"duration": duration, "easing": "linear"},
     }
-    return animations[selection]
+
+
+def run(__DATA__):
+    # __DATA__ = (__DATA__[:, :, :, None].repeat(3, axis=3) * 255).astype(__np.uint8)
+    fig = go.Figure(frames=[go.Frame(data=go.Surface(
+        z=__DATA__[k],
+    ),
+        name=str(k)
+    )
+        for k in range(len(__DATA__))],
+    )
+
+    fig.add_trace(go.Surface(
+        z=__DATA__[0],
+    ))
+
+    fig.update_layout(
+        title='4D',
+        width=500,
+        height=500,
+        scene=dict(
+            zaxis=dict(range=[0, 1], autorange=False),
+            aspectratio=dict(x=1, y=1, z=1),
+        ),
+        updatemenus=[
+            {
+                "buttons": [
+                    {
+                        "args": [None, frame_args(0)],
+                        "label": "&#9654;",  # play symbol
+                        "method": "animate",
+                    },
+                    {
+                        "args": [[None], frame_args(0)],
+                        "label": "&#9724;",  # pause symbol
+                        "method": "animate",
+                    },
+                ],
+                "direction": "left",
+                "pad": {"r": 10, "t": 70},
+                "type": "buttons",
+                "x": 0.1,
+                "y": 0,
+            }
+        ],
+        # sliders=sliders
+    )
+
+    offline.plot(fig)

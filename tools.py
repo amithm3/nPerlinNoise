@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def iterable(var):
     try:
         iter(var)
@@ -33,7 +36,7 @@ class RefNDArray(list):
 
     def __truediv__(self, other):
         if iterable(other):
-            for a, o in zip(self, other, strict=True): a /= o
+            for a, o in zip(self, other): a /= o
         else:
             for array in self: array /= other
         return self
@@ -54,3 +57,7 @@ class RefNDArray(list):
         else:
             for i, array in enumerate(self): self[i] = array.repeat(repeats, axis - 1)
         return self
+
+
+class Warp:
+    COSINE = "(1 - cos(pi*a)) / 2", {'pi': np.float32(np.pi)}

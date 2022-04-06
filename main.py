@@ -8,19 +8,21 @@ from perlin import PerlinNoise
 # todo: even if dim changes the values in the prev plane should be same
 
 # -----hyper-parameters-----
-d = 3
-dt = d
-dl = (0, 100, 50), (0, 100, 50), (-50, 50, 100)
-pt = '4D'  # 2D or 3D or 4D
+d = 2
+dt = 2
+dl = (0, 100, 1000),
+pt = '2D'  # 2D or 3D or 4D
 cmap = 'gray'
-f = None
-s = None
+f = (8, 4)
+s = 0
 w = None
 o = None
 p = None
+l = None
+_r = None
 # --------------------------
 
-perlinNoise = PerlinNoise(d, octaves=o, persistence=p, frequency=f, seed=s, waveLength=w)
+perlinNoise = PerlinNoise(d, octaves=o, persistence=p, lacunarity=l, frequency=f, seed=s, waveLength=w, _range=_r)
 coordsBase = [np.linspace(*dl[i] if i < len(dl) else dl[-1]) for i in range(dt)]
 coords = np.meshgrid(*coordsBase)
 coordsRavel = [c.ravel() for c in coords]
@@ -41,7 +43,7 @@ try:
         marker_data = go.Surface(
             x=coords[0],
             y=coords[1],
-            z=h.reshape(coords[0].shape) * .75 + .125)
+            z=h.reshape(coords[0].shape))
         fig = go.Figure(data=marker_data)
         fig.update_layout(
             scene=dict(zaxis=dict(nticks=4, range=[0, 1])),
@@ -55,14 +57,8 @@ try:
     elif pt == '4D':
         import animations
         assert dt >= 3
-        frames = go.Frames(
-            go.Surface(
-                x=coords[0],
-                y=coords[1],
-                z=h.reshape(coords[0].shape) * .75 + .125)
-        )
-        animations.__DF__ = frames
-        animations.app.run_server(debug=True)
+        h = h.reshape(coords[0].shape).transpose() * .5 + .25
+        animations.run(h)
     else:
         raise ValueError(f"{pt=} is invalid")
 except NameError:
