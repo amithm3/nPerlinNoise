@@ -1,20 +1,22 @@
 import numpy as np
 import plotly.graph_objects as go
 import plotly.offline as offline
-from matplotlib import pyplot, cm, animation
+from matplotlib import pyplot
 
 from perlin import PerlinNoise
+from tools import Warp
 
 # todo: even if dim changes the values in the prev plane should be same
 
 # -----hyper-parameters-----
 d = 2
-dt = 2
-dl = (0, 100, 1000),
+_w = None
+dt = d
+dl = (0, 100, 100),
 pt = '2D'  # 2D or 3D or 4D
 cmap = 'gray'
-f = (8, 4)
-s = 0
+f = None
+s = None
 w = None
 o = None
 p = None
@@ -22,7 +24,7 @@ l = None
 _r = None
 # --------------------------
 
-perlinNoise = PerlinNoise(d, octaves=o, persistence=p, lacunarity=l, frequency=f, seed=s, waveLength=w, _range=_r)
+perlinNoise = PerlinNoise(d, _w, octaves=o, persistence=p, lacunarity=l, frequency=f, seed=s, waveLength=w, _range=_r)
 coordsBase = [np.linspace(*dl[i] if i < len(dl) else dl[-1]) for i in range(dt)]
 coords = np.meshgrid(*coordsBase)
 coordsRavel = [c.ravel() for c in coords]
@@ -32,8 +34,7 @@ try:
     if pt == '2D':
         fig, ax = pyplot.subplots()
         if len(coords) > 1:
-            h = h.repeat(3)
-            ax.imshow(h.reshape((*coords[0].shape, 3)), cmap=cmap)
+            ax.imshow(h.reshape(*coords[0].shape), cmap=cmap)
         else:
             ax.plot(coords[0], h)
             ax.set_ylim(-.1, 1.1)

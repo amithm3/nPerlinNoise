@@ -1,4 +1,5 @@
 import numpy as np
+import numexpr as ne
 
 
 def iterable(var):
@@ -60,4 +61,13 @@ class RefNDArray(list):
 
 
 class Warp:
-    COSINE = "(1 - cos(pi*a)) / 2", {'pi': np.float32(np.pi)}
+    CLASSIC_LERP = lambda a: ne.evaluate("a", local_dict={'a': a})
+    SQUARE = lambda a: ne.evaluate("a * a", local_dict={'a': a})
+    CUBIC = lambda a: ne.evaluate("a * a * a", local_dict={'a': a})
+    IMPROVED = lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a})
+    COSINE = lambda a: ne.evaluate("(1 - cos(pi*a)) / 2", local_dict={'a': a, 'pi': np.float32(np.pi)})
+    STEP = lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a})
+
+    @staticmethod
+    def polynomial(n):
+        return lambda a: ne.evaluate("a ** n", local_dict={'a': a, 'n': n})

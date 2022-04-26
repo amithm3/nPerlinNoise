@@ -1,17 +1,19 @@
 import warnings
 from typing import *
 
-import numexpr as ne
-
 from tools import *
 
 
 class NPerlin:
     import numpy as __np
     __rnd = __np.random
-    # todo: make as property
-    __DIMENSION__: int
-    __SPACER__: __np.ndarray
+    __DIMENSION__: int  # todo: make private
+    __SPACER: __np.ndarray
+    __WARP__: list[Callable[['np.ndarray'], 'np.ndarray']]  # todo: diff warp for diff dims
+
+    @property
+    def dims(self):
+        return self.__DIMENSION__
 
     @property
     def seed(self):
@@ -28,25 +30,27 @@ class NPerlin:
     def __init__(self,
                  frequency: Union[int, tuple] = None,
                  seed: int = None,
-                 waveLength: float = None):
+                 waveLength: Union[float, tuple] = None):
         if frequency is None: frequency = 4
         if isinstance(frequency, int): frequency = (frequency,) * self.__DIMENSION__
         if seed is None: seed = 2 ** 16 + self.__rnd.randint(-(2 ** 16), 2 ** 16)
         if waveLength is None: waveLength = 100
+        if isinstance(waveLength, (int, float)): waveLength = (waveLength,) * self.__DIMENSION__
         assert isinstance(frequency, tuple) and all(f > 1 and isinstance(f, int) for f in frequency)
-        assert len(frequency) == self.__DIMENSION__
+        assert len(frequency) == self.dims
         assert isinstance(seed, int) and 2 ** 32 > seed >= 0
-        assert isinstance(waveLength, (float, int)) and waveLength > 0
+        assert isinstance(waveLength, tuple) and all(w > 0 and isinstance(w, int) for w in waveLength)
+        assert len(waveLength) == self.dims
         self.__seed = seed
         self.__rnd.seed(self.__seed)
         self.__frequency = frequency
         self.__waveLength = waveLength
 
         self._fabric = self.__rnd.random(self.__frequency).astype(self.__np.float32)
-        self.__amp = [waveLength / (f - 1) for f in self.__frequency]
+        self.__amp = [w / (f - 1) for w, f in zip(waveLength, self.__frequency)]
 
     def __new__(cls, *args, **kwargs):
-        cls.__SPACER__ = cls.__np.array(findCorners(cls.__DIMENSION__))[:, :, None]
+        cls.__SPACER = cls.__np.array(findCorners(cls.__DIMENSION__))[:, :, None]
         return super(NPerlin, cls).__new__(cls)
 
     def __call__(self, *coords, checkFormat=True):
@@ -63,7 +67,7 @@ class NPerlin:
                 stretch, left = divmod(maxLength, max(1, len(coords[d])))
                 __coords[d, :maxLength - left] = self.__np.repeat(coords[d], stretch)
                 __coords[d, maxLength - left:] = self.__np.repeat(coords[d][-1], left)
-            coords = __coords.__abs__()
+            coords = __coords
         else:
             warnings.warn(
                 "Using 'checkFormat' as not True is unsafe"
@@ -73,29 +77,29 @@ class NPerlin:
                 "\n     Unexpected results and/or errors may be raised"
                 "\n Use only if you know what it does",
                 RuntimeWarning)
+        coords = coords.__abs__()
         coords = RefNDArray(coords)
-        # coords = __np.array(coords)
         assert len(coords) == self.__DIMENSION__ and len(self.__np.shape(coords)) == 2
-        coords /= self.__amp
+        coords /= self.__amp  # normalized coords
         lowerIndex = self.__np.floor(coords).astype(self.__np.uint16)
-        while lowerIndex.max() >= len(self._fabric) - 1: self.extendFabric()
+        while any(lowerIndex.max(axis=1) + 1 >= self._fabric.shape): self.extendFabric()
 
-        bound = (lowerIndex + self.__SPACER__).transpose()
+        bound = (lowerIndex + self.__SPACER).transpose()  # enclosure index where the coords exists within fabric
         bSpace = self._fabric[tuple(bound[:, d] for d in range(self.__DIMENSION__))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMENSION__))
-        coords -= lowerIndex
+        coords -= lowerIndex  # relative coords
 
-        return self.__interpolation(bSpace, coords)
+        return self.__interpolation(bSpace, coords, self.__DIMENSION__)
 
-    def __interpolation(self, bSpace, relativeCoord):
+    def __interpolation(self, bSpace, relativeCoord, d):
         if len(bSpace.shape) == 2:
             heightStretch = bSpace[:, 1] - bSpace[:, 0]
-            return (self.__warp(relativeCoord) * heightStretch + bSpace[:, 0]).ravel()
+            return (self.__WARP__[d - 1](relativeCoord) * heightStretch + bSpace[:, 0]).ravel()
         bSpace = bSpace.reshape([-1, *bSpace.shape[2:]])
-        bSpace = self.__interpolation(bSpace, relativeCoord[1:].repeat(2, axis=1))
+        bSpace = self.__interpolation(bSpace, relativeCoord[1:].repeat(2, axis=1), d - 1)
         bSpace = bSpace.reshape((-1, 2))
 
-        return self.__interpolation(bSpace, relativeCoord[0])
+        return self.__interpolation(bSpace, relativeCoord[0], d)
 
     def extendFabric(self):
         __fabric = self.__np.zeros(self.__np.array(self._fabric.shape) * 2, self._fabric.dtype)
@@ -104,14 +108,6 @@ class NPerlin:
         for os, bs in zip(*shape):
             __fabric[os] = self.__rnd.random(bs).astype(self.__np.float32)
         self._fabric = __fabric
-
-    def __warp(self, a):
-        # return ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a})
-        return ne.evaluate("(1 - cos(pi*a)) / 2", local_dict={'a': a, 'pi': self.__np.float32(self.__np.pi)})
-        # return ne.evaluate("a", local_dict={'a': a})
-        # return ne.evaluate("a * a", local_dict={'a': a})
-        # return ne.evaluate("a * a * a", local_dict={'a': a})
-        # return ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a})
 
     def __findShapeForExt(self, shape):
         outShape = []
