@@ -30,7 +30,7 @@ class NPerlinNoise(NPerlin):
         if lacunarity is None: lacunarity = 2
         if persistence is None: persistence = 0.5
         if octaves is None: octaves = 8  # todo: diff octaves for diff dims
-        assert isinstance(octaves, int) and 1 <= octaves <= 8
+        assert isinstance(octaves, int)# and 1 <= octaves <= 8
         assert isinstance(lacunarity, int)
         assert isinstance(persistence, (int, float)) and 0 < persistence <= 1
         self._octaves = octaves

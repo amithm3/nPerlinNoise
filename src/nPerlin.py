@@ -90,9 +90,9 @@ class NPerlin(metaclass=PMeta):
         self.__WAVE_LENGTH = waveLength
 
         # matrix of random value nodes
-        self.__fabric = self.__rnd.random(self.__FREQUENCY + self.__np.uint8(1)).astype(self.__np.float32)
+        self.__fabric = self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32)
         # length between any 2 consecutive random values
-        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + self.__np.uint8(1))]
+        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY)]
 
     def __call__(self, *coords, checkFormat=True):
         """
@@ -159,11 +159,10 @@ class NPerlin(metaclass=PMeta):
             f"coords must be a 2D Matrix, but given Matrix of depth {depth}"
         coords /= self.__AMP  # unitized coords
         lowerIndex = self.__np.floor(coords).astype(self.__np.uint16)
-        warpedLowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
-        # while any(lowerIndex.max(axis=1) + 1 >= self.__fabric.shape): self.extendFabric()
+        while any(lowerIndex.max(axis=1) + 1 >= self.__fabric.shape): self.extendFabric()
 
         # bounding index & space where the coords exists within fabric
-        bIndex = (warpedLowerIndex + self.__BIND).transpose()
+        bIndex = (lowerIndex + self.__BIND).transpose()
         bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
         coords -= lowerIndex  # relative unitized coords
