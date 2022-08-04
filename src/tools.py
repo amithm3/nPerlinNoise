@@ -1,10 +1,8 @@
 import warnings
-import tempfile
 from typing import Callable
 
 import numpy as np
 import numexpr as ne
-from numpy.lib import format as fm
 
 
 def iterable(var):
@@ -28,16 +26,6 @@ def findCorners(dim):
         corners = []
         [[corners.append([c, *cc]) for cc in r] for c in [0, 1]]
         return corners
-
-
-def writeNpyCache(array: "np.ndarray") -> np.ndarray:
-    with tempfile.NamedTemporaryFile(suffix='.npy') as file:
-        np.save(file, array)
-        file.seek(0)
-        fm.read_magic(file)
-        fm.read_array_header_1_0(file)
-        memMap = np.memmap(file, mode='r', shape=array.shape, dtype=array.dtype, offset=file.tell())
-    return memMap
 
 
 class RefNDArray(list):
@@ -90,7 +78,7 @@ class RefNDArray(list):
         super(RefNDArray, self).__init__(self.np_array(c) if not isinstance(c, np.ndarray) else c for c in arr)
         if self._non_ndarray_present and not dep_warn: warnings.warn(
             "Using RefNDArray on array with non ndarray elements is not recommended, "
-            "will convert element to ndarray without warning in future",
+            "will convert element(s) to ndarray without warning in future",
             FutureWarning)
 
     def repeat(self, repeats=None, axis=None):

@@ -24,6 +24,6 @@ def perlinGenerator(noise: 'NPerlin', *lineSpace: tuple[float, float, float], gr
     coordsBase = (np.linspace(*ls) for ls in lineSpace)
     # noinspection PyTypeChecker
     coordsMesh: tuple['np.ndarray'] = np.meshgrid(*coordsBase)
-    coords = (c.ravel() for c in coordsMesh)
+    coords = [c.ravel() for c in coordsMesh]
     h = recMemFeed(noise, *coords).reshape(coordsMesh[0].shape)
-    return gradient(h)
+    return gradient(h), *coordsMesh
