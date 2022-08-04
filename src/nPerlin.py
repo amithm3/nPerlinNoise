@@ -51,14 +51,14 @@ class NPerlin(metaclass=PMeta):
         return obj
 
     def __init__(self,
-                 frequency: Union[int, tuple[int]] = None,
+                 frequency: Union[int, tuple[int, ...]] = None,
                  seed: int = None,
                  waveLength: Union[float, tuple[float]] = None,
                  _range: tuple[float, float] = None):
         """
         :param frequency: number(s) of random values in one unit, default 8
         :param seed: seed for random values, default random value
-        :param waveLength: length(s) of one unit, default 100
+        :param waveLength: length(s) of one unit, default 128
         """
         if frequency is None: frequency = 8
         assert isinstance(frequency, (int, tuple)), \
@@ -71,7 +71,7 @@ class NPerlin(metaclass=PMeta):
         assert (isinstance(seed, int) and 2 ** 32 > seed >= 0), \
             "param 'seed' must be +ve 'int' (or zero) less than 2^32 or 'None' for random seed"
 
-        if waveLength is None: waveLength = 100
+        if waveLength is None: waveLength = 128
         if isinstance(waveLength, (int, float)): waveLength = (waveLength,) * self.__DIMS
         assert isinstance(waveLength, tuple) and all(w > 0 and isinstance(w, (int, float)) for w in waveLength) and \
                len(waveLength) == self.__DIMS, \
@@ -90,9 +90,9 @@ class NPerlin(metaclass=PMeta):
         self.__WAVE_LENGTH = waveLength
 
         # matrix of random value nodes
-        self.__fabric = self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32)
+        self.__fabric = self.loopifyArr(self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32))
         # length between any 2 consecutive random values
-        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY)]
+        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + self.__np.uint8(1))]
 
     def __call__(self, *coords, checkFormat=True):
         """
@@ -159,10 +159,10 @@ class NPerlin(metaclass=PMeta):
             f"coords must be a 2D Matrix, but given Matrix of depth {depth}"
         coords /= self.__AMP  # unitized coords
         lowerIndex = self.__np.floor(coords).astype(self.__np.uint16)
-        while any(lowerIndex.max(axis=1) + 1 >= self.__fabric.shape): self.extendFabric()
+        warpedLowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
 
         # bounding index & space where the coords exists within fabric
-        bIndex = (lowerIndex + self.__BIND).transpose()
+        bIndex = (warpedLowerIndex + self.__BIND).transpose()
         bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
         coords -= lowerIndex  # relative unitized coords
@@ -186,30 +186,7 @@ class NPerlin(metaclass=PMeta):
 
         return self.__interpolation(bSpace, relativeCoord[0], d)
 
-    def extendFabric(self):
-        """
-        todo: documentation required
-        """
-        __fabric = self.__np.zeros(self.__np.array(self.__fabric.shape) * 2, self.__fabric.dtype)
-        __fabric[tuple([slice(s) for s in self.__fabric.shape])] = self.__fabric
-        shape = self.__findShapeForExt(self.__fabric.shape)
-        for os, bs in zip(*shape): __fabric[os] = self.__rnd.random(bs)
-        self.__fabric = __fabric
-
-    def __findShapeForExt(self, shape):
-        """
-        todo: documentation required
-        :param shape:
-        :return:
-        """
-        outShape = []
-        baseShape = []
-        for i, s in enumerate(shape):
-            bs = (self.__np.array(shape[:i]) * 2).tolist() + list(shape[i:])  # extends each axis till 'i'
-            os = tuple(slice(*sorted((start, stop)))
-                       for start, stop in
-                       zip(bs, [*[0] * i, bs[i] * 2, *[0] * (s - i)]))  # translates base along axis 'i'
-            outShape.append(os)
-            baseShape.append(bs)
-
-        return outShape, baseShape
+    @staticmethod
+    def loopifyArr(arr: np.ndarray):
+        for si in range(len(arr.shape)): arr = np.concatenate((arr, np.expand_dims(arr.take(0, si), si)), axis=si)
+        return arr

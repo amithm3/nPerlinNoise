@@ -15,7 +15,7 @@ class NPerlinNoise(NPerlin):
                  waveLength: Union[float, tuple] = None,
                  _range: tuple[float, float] = None,
                  octaves: int = None,
-                 lacunarity: int = None,
+                 lacunarity: float = None,
                  persistence: float = None):
         """
         todo: documentation required
@@ -30,13 +30,14 @@ class NPerlinNoise(NPerlin):
         if lacunarity is None: lacunarity = 2
         if persistence is None: persistence = 0.5
         if octaves is None: octaves = 8  # todo: diff octaves for diff dims
-        assert isinstance(octaves, int)# and 1 <= octaves <= 8
-        assert isinstance(lacunarity, int)
+        assert isinstance(octaves, int) and 1 <= octaves <= 8
         assert isinstance(persistence, (int, float)) and 0 < persistence <= 1
         self._octaves = octaves
         self._lacunarity = lacunarity
         self._persistence = persistence
-        super(NPerlinNoise, self).__init__(frequency, seed, waveLength, _range)
+        super(NPerlinNoise, self).__init__(
+            tuple([f * self._octaves for f in frequency]) if not isinstance(frequency, int)
+            else frequency * self._octaves, seed, waveLength, _range)
 
         self.__HMAX = (1 - self._persistence ** self._octaves) / (1 - self._persistence) if self._persistence != 1 \
             else self._octaves
