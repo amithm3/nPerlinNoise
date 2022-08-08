@@ -5,10 +5,6 @@ from .tools import RefNDArray
 
 
 class NPerlinNoise(NPerlin):
-    @property
-    def hmax(self):
-        return self.__HMAX
-
     def __init__(self,
                  frequency: Union[int, tuple] = None,
                  seed: int = None,
@@ -27,6 +23,7 @@ class NPerlinNoise(NPerlin):
         :param persistence: amplitude modulator for successive noise octave, default 0.5
         """
         if frequency is None: frequency = 8
+        if waveLength is None: waveLength = 128
         if lacunarity is None: lacunarity = 2
         if persistence is None: persistence = 0.5
         if octaves is None: octaves = 8  # todo: diff octaves for diff dims
@@ -35,13 +32,12 @@ class NPerlinNoise(NPerlin):
         self._octaves = octaves
         self._lacunarity = lacunarity
         self._persistence = persistence
-        super(NPerlinNoise, self).__init__(
-            tuple([f * self._octaves for f in frequency]) if not isinstance(frequency, int)
-            else frequency * self._octaves, seed, waveLength, _range)
+        super(NPerlinNoise, self).__init__(frequency * self._lacunarity ** (self._octaves - 1), seed,
+                                           waveLength * self._lacunarity ** (self._octaves - 1), _range)
 
         self.__HMAX = (1 - self._persistence ** self._octaves) / (1 - self._persistence) if self._persistence != 1 \
             else self._octaves
-        self.__AMPS = [self._persistence ** i / self.__HMAX for i in range(self._octaves)]
+        self.__AMPS = [self._persistence ** i / self.__HMAX for i in range(self._octaves)][::-1]
 
     def __call__(self, *coords, checkFormat=True):
         """
@@ -50,9 +46,9 @@ class NPerlinNoise(NPerlin):
         :param checkFormat:
         :return:
         """
-        coords = RefNDArray(coords, dep_warn=True)
+        coords = RefNDArray(coords, dep_warn=True) * self._lacunarity ** (self._octaves - 1)
         h = super(NPerlinNoise, self).__call__(*coords, checkFormat=checkFormat) * self.__AMPS[0]
         for i in range(1, self._octaves):
-            coords *= self._lacunarity
+            coords /= self._lacunarity
             h += super(NPerlinNoise, self).__call__(*coords, checkFormat=checkFormat) * self.__AMPS[i]
         return h

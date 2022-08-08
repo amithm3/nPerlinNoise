@@ -5,16 +5,16 @@ from typing import Union
 from .tools import RefNDArray, findCorners, iterable, maxLen, Warp
 
 
-class PMeta(type):
+class NMeta(type):
     def __call__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
         obj = cls.__new__(cls, *args, dims=dims, warp=warp, **kwargs)  # noqa
         obj.__init__(*args, **kwargs)
         return obj
 
 
-class NPerlin(metaclass=PMeta):
+class NPerlin(metaclass=NMeta):
     import numpy as __np
-    __rnd = __np.random
+    __rnd = __np.random  # todo: make to self
     __DIMS: int  # max dimensional depth
     __BIND: '__np.ndarray'  # unit bounding box of n-dimension
     __WARP: tuple['Warp']  # interpolation function
@@ -93,7 +93,7 @@ class NPerlin(metaclass=PMeta):
         # matrix of random value nodes
         self.__fabric = self.loopifyArr(self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32))
         # length between any 2 consecutive random values
-        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + self.__np.uint8(1))]
+        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + np.uint(1))]
 
     def __call__(self, *coords, checkFormat: bool = True):
         """
@@ -188,7 +188,7 @@ class NPerlin(metaclass=PMeta):
         warpedLowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
 
         # bounding index & space where the coords exists within fabric
-        bIndex = (warpedLowerIndex + self.__BIND).transpose()
+        bIndex = (lowerIndex + self.__BIND).transpose()
         bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
         coords -= lowerIndex  # relative unitized coords
@@ -214,5 +214,10 @@ class NPerlin(metaclass=PMeta):
 
     @staticmethod
     def loopifyArr(arr: np.ndarray):
+        """
+        todo: documentation required
+        :param arr:
+        :return:
+        """
         for si in range(len(arr.shape)): arr = np.concatenate((arr, np.expand_dims(arr.take(0, si), si)), axis=si)
         return arr

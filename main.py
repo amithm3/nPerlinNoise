@@ -6,8 +6,8 @@ from src import *
 
 
 def main():
-    noise = NPerlinNoise(frequency=8,
-                         seed=0,
+    noise = NPerlinNoise(frequency=32,
+                         seed=None,
                          waveLength=128,
                          _range=(0, 1),
                          octaves=8,
@@ -15,8 +15,9 @@ def main():
                          persistence=.5,
                          dims=2)
     gradient = None
-    h, *coordsMesh = perlinGenerator(noise, *[(0, 12.7, 1000)] * 2, gradient=gradient)
-    plot = 0
+    res = 1
+    h, *coordsMesh = perlinGenerator(noise, *[(0, 127.999, 256 * res)] * 2, gradient=gradient)
+    plot = 1
 
     if plot == 1:
         # -----Matplotlib-----

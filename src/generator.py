@@ -20,10 +20,10 @@ def recMemFeed(noise, *coords):
 
 
 def perlinGenerator(noise: 'NPerlin', *lineSpace: tuple[float, float, float], gradient=None):
-    if gradient is None: gradient = lambda a: a
-    coordsBase = (np.linspace(*ls) for ls in lineSpace)
+    if gradient is None: gradient = lambda a, *_coordsMesh: a
+    coordsBase = [np.linspace(*ls) for ls in lineSpace]
     # noinspection PyTypeChecker
     coordsMesh: tuple['np.ndarray'] = np.meshgrid(*coordsBase)
     coords = [c.ravel() for c in coordsMesh]
-    h = recMemFeed(noise, *coords).reshape(coordsMesh[0].shape)
-    return gradient(h), *coordsMesh
+    h = recMemFeed(noise, *coords)
+    return gradient(h.reshape(coordsMesh[0].shape), *coordsMesh), *coordsMesh

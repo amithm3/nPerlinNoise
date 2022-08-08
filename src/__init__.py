@@ -1,6 +1,6 @@
 from .nPerlin import NPerlin
 from .nPerlinNoise import NPerlinNoise
-from .tools import Warp
+from .tools import Warp, Gradient
 from .generator import perlinGenerator
 
-__all__ = ['NPerlin', 'NPerlinNoise', 'Warp', 'perlinGenerator']
+__all__ = ['NPerlin', 'NPerlinNoise', 'Warp', 'Gradient', 'perlinGenerator']
