@@ -23,7 +23,19 @@ class NPerlinNoise(NPerlin):
         :param persistence: amplitude modulator for successive noise octave, default 0.5
         """
         if frequency is None: frequency = 8
+        assert isinstance(frequency, (int, tuple)), \
+            "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 of length dims or 'None' for value 8"
+        if isinstance(frequency, int): frequency = (frequency,) * self.dims
+        assert all(f > 1 and isinstance(f, int) for f in frequency) and len(frequency) == self.dims, \
+            "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 of length dims or 'None' for value 8"
+
         if waveLength is None: waveLength = 128
+        if isinstance(waveLength, (int, float)): waveLength = (waveLength,) * self.dims
+        assert isinstance(waveLength, tuple) and all(w > 0 and isinstance(w, (int, float)) for w in waveLength) and \
+               len(waveLength) == self.dims, \
+            "param 'waveLength' must be +ve 'float'('int') or " \
+            "'tuple' of +ve 'float'('int) of length dims or 'None' for value 100"  # noqa
+
         if lacunarity is None: lacunarity = 2
         if persistence is None: persistence = 0.5
         if octaves is None: octaves = 8  # todo: diff octaves for diff dims
@@ -32,8 +44,10 @@ class NPerlinNoise(NPerlin):
         self._octaves = octaves
         self._lacunarity = lacunarity
         self._persistence = persistence
-        super(NPerlinNoise, self).__init__(frequency * self._lacunarity ** (self._octaves - 1), seed,
-                                           waveLength * self._lacunarity ** (self._octaves - 1), _range)
+        super(NPerlinNoise, self).__init__(
+            tuple([f * self._lacunarity * self._octaves for f in frequency]), seed,
+            tuple([w * self._lacunarity * self._octaves for w in waveLength]), _range
+        )
 
         self.__HMAX = (1 - self._persistence ** self._octaves) / (1 - self._persistence) if self._persistence != 1 \
             else self._octaves

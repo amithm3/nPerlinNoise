@@ -2,7 +2,7 @@ import numpy as np
 import warnings
 from typing import Union
 
-from .tools import RefNDArray, findCorners, iterable, maxLen, Warp
+from .tools import RefNDArray, findCorners, iterable, maxLen, Warp, PRNG, Fabric
 
 
 class NMeta(type):
@@ -91,7 +91,8 @@ class NPerlin(metaclass=NMeta):
         self.__WAVE_LENGTH = waveLength
 
         # matrix of random value nodes
-        self.__fabric = self.loopifyArr(self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32))
+        prng = PRNG(self.__SEED)
+        self.__fabric = self.loopifyArr(prng(self.__FREQUENCY).astype(self.__np.float32))
         # length between any 2 consecutive random values
         self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + np.uint(1))]
 
@@ -179,7 +180,7 @@ class NPerlin(metaclass=NMeta):
                 "\n     Unexpected results and/or errors may be encountered"
                 "\n Use only if you know what it does",
                 RuntimeWarning)
-        coords = coords.__abs__()
+        coords = coords.__abs__()[::-1]
         coords = RefNDArray(coords)  # Pseudo-ndarray-like object
         assert (depth := len(self.__np.shape(coords))) == 2, \
             f"coords must be a 2D Matrix, but given Matrix of depth {depth}"
@@ -188,7 +189,7 @@ class NPerlin(metaclass=NMeta):
         warpedLowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
 
         # bounding index & space where the coords exists within fabric
-        bIndex = (lowerIndex + self.__BIND).transpose()
+        bIndex = (warpedLowerIndex + self.__BIND).transpose()
         bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
         coords -= lowerIndex  # relative unitized coords

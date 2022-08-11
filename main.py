@@ -6,15 +6,15 @@ from src import *
 
 
 def main():
-    noise = NPerlinNoise(frequency=32,
-                         seed=None,
+    noise = NPerlinNoise(frequency=8,
+                         seed=999,
                          waveLength=128,
                          _range=(0, 1),
                          octaves=8,
                          lacunarity=2,
                          persistence=.5,
                          dims=2)
-    gradient = None
+    gradient = Gradient.none()
     res = 1
     h, *coordsMesh = perlinGenerator(noise, *[(0, 127.999, 256 * res)] * 2, gradient=gradient)
     plot = 1
