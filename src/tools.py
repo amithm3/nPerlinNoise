@@ -1,6 +1,6 @@
 import warnings
-import random
 from typing import Callable
+from functools import cache
 
 import numpy as np
 import numexpr as ne
@@ -29,50 +29,45 @@ def findCorners(dim):
         return corners
 
 
-class BasePRNG:
-    __slots__ = ['a', 'c', 'm', 'seed']
-
+class PRNG:
     def __init__(self, seed):
         self.a = 1664525
         self.c = 1013904223
         self.m = 2 ** 32
         self.seed = seed
 
-    def __call__(self, n):
-        random.seed(n)
-        gen = random.randint(0, self.m)
-        return (self.a * (self.seed + gen) + self.c) % self.m
+    def __call__(self, ids):
+        return self.__n_rnd(ids, [self.seed] * len(ids[0]))
 
+    def __rnd(self, _id, seed):
+        if len(_id) == 1:
+            return self.__gen(_id[-1], seed)
+        else:
+            return self.__rnd(_id[:-1], self.__gen(_id[-1], seed))
 
-class PRNG:
-    def __init__(self, seed):
-        self.a = 1664525
-        self.c = 1013904223
-        self.m = 2 ** 32
-        self.super_seed = self.seed = seed
-
-    def __call__(self, shape=None, d=None):
-        if shape is None: shape = (1,)
-        if d is None: d = (0,) * len(shape)
-        return self.__n_rnd(shape, self.super_seed)[0]
-
-    def __n_rnd(self, shape, seed):
-        if len(shape) == 1:
-            return self.__rnd(seed, shape[0]) / self.m, BasePRNG(seed)(0)
-        arr = np.zeros(shape, dtype=np.float32)
-        for i in range(shape[0]):
-            arr[i], seed = self.__n_rnd(shape[1:], seed)
-        return arr, seed
-
-    def __rnd(self, seed, n):
-        arr = np.zeros(n, dtype=np.float32)
-        arr[0] = self.__gen(self.a, seed, self.c, self.m)
-        for i in range(1, n): arr[i] = self.__gen(self.a, arr[i - 1], self.c, self.m)
+    def __n_rnd(self, ids, seeds):
+        if len(ids) == 1:
+            arr = np.zeros_like(ids[0], dtype=np.float32)
+            for i, x in enumerate(ids[0]): arr[i] = self.__gen(x, seeds[i]) / self.m
+        else:
+            seeds = [self.__gen(x, seeds[i]) for i, x in enumerate(ids[-1])]
+            arr = self.__n_rnd(ids[:-1], seeds)
         return arr
 
-    @staticmethod
-    def __gen(a, seed, c, m):
-        return (a * seed + c) % m
+    @cache
+    def __gen(self, n, seed):
+        if n == 0: return seed
+        gen = (self.a * int(n) + self.c) % self.m
+        return (self.a * int(seed ** .5 * gen ** .5) + self.c) % self.m
+
+
+class Fabric:
+    def __init__(self, seed, frequency):
+        self.frequency = frequency
+        self.prng = PRNG(seed)
+
+    def __getitem__(self, item):
+        return self.prng([i.flatten() for i in item]).reshape(item[0].shape)
 
 
 class RefNDArray(list):
@@ -136,15 +131,6 @@ class RefNDArray(list):
         else:
             for i, array in enumerate(self): self[i] = array.repeat(repeats, axis - 1)
         return self
-
-
-class Fabric:
-    def __init__(self, seed, frequency):
-        self.frequency = frequency
-        self.prng = PRNG(seed)
-
-    def __getitem__(self, item):
-        pass
 
 
 class Warp:

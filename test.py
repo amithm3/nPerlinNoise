@@ -1,8 +1,11 @@
-from src.tools import BasePRNG
+import numpy as np
+
+from src.tools import PRNG
 from matplotlib import pyplot
 
-prng = BasePRNG(999)
-arr = [[prng(i * 100 + j) / prng.m for j in range(100)] for i in range(100)]
+prng = PRNG(7688)
+x, y = 50, 50
+arr = prng([np.tile(np.arange(0, x), x), np.arange(0, x).repeat(x)])
+arr.resize((x, y))
 
 pyplot.imshow(arr)
-

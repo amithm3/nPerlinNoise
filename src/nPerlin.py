@@ -1,6 +1,7 @@
-import numpy as np
 import warnings
 from typing import Union
+
+import numpy as _np
 
 from .tools import RefNDArray, findCorners, iterable, maxLen, Warp, PRNG, Fabric
 
@@ -18,6 +19,7 @@ class NPerlin(metaclass=NMeta):
     __DIMS: int  # max dimensional depth
     __BIND: '__np.ndarray'  # unit bounding box of n-dimension
     __WARP: tuple['Warp']  # interpolation function
+    __INF: bool = True
 
     @property
     def dims(self):
@@ -37,7 +39,7 @@ class NPerlin(metaclass=NMeta):
 
     @property
     def fabric(self):
-        return self.__fabric.copy()
+        return self.__fabric
 
     def __new__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
         if warp is None: warp = Warp.improved()
@@ -86,15 +88,17 @@ class NPerlin(metaclass=NMeta):
         self.__rangeMul = self.__range[1] - self.__range[0]
 
         self.__SEED = seed
-        self.__rnd.seed(self.__SEED)
         self.__FREQUENCY = frequency
         self.__WAVE_LENGTH = waveLength
 
         # matrix of random value nodes
-        prng = PRNG(self.__SEED)
-        self.__fabric = self.loopifyArr(prng(self.__FREQUENCY).astype(self.__np.float32))
+        if self.__INF:
+            self.__fabric = Fabric(self.__SEED, self.__FREQUENCY)
+        else:
+            self.__rnd.seed(self.__SEED)
+            self.__fabric = self.loopifyArr(self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32))
         # length between any 2 consecutive random values
-        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + np.uint(1))]
+        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + self.__np.uint(1))]
 
     def __call__(self, *coords, checkFormat: bool = True):
         """
@@ -186,13 +190,14 @@ class NPerlin(metaclass=NMeta):
             f"coords must be a 2D Matrix, but given Matrix of depth {depth}"
         coords /= self.__AMP  # unitized coords
         lowerIndex = self.__np.floor(coords).astype(self.__np.uint16)
-        warpedLowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
+        coords -= lowerIndex  # relative unitized coords
+        # warping indices to stay within fabric bound
+        if not self.__INF: lowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
 
         # bounding index & space where the coords exists within fabric
-        bIndex = (warpedLowerIndex + self.__BIND).transpose()
+        bIndex = (lowerIndex + self.__BIND).transpose()
         bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
-        coords -= lowerIndex  # relative unitized coords
 
         return self.__interpolation(bSpace, coords, self.__DIMS)
 
@@ -214,11 +219,11 @@ class NPerlin(metaclass=NMeta):
         return self.__interpolation(bSpace, relativeCoord[0], d)
 
     @staticmethod
-    def loopifyArr(arr: np.ndarray):
+    def loopifyArr(arr: "_np.ndarray"):
         """
         todo: documentation required
         :param arr:
         :return:
         """
-        for si in range(len(arr.shape)): arr = np.concatenate((arr, np.expand_dims(arr.take(0, si), si)), axis=si)
+        for si in range(len(arr.shape)): arr = _np.concatenate((arr, _np.expand_dims(arr.take(0, si), si)), axis=si)
         return arr
