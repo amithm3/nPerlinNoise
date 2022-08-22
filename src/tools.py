@@ -39,12 +39,6 @@ class PRNG:
     def __call__(self, ids):
         return self.__n_rnd(ids, [self.seed] * len(ids[0]))
 
-    def __rnd(self, _id, seed):
-        if len(_id) == 1:
-            return self.__gen(_id[-1], seed)
-        else:
-            return self.__rnd(_id[:-1], self.__gen(_id[-1], seed))
-
     def __n_rnd(self, ids, seeds):
         if len(ids) == 1:
             arr = np.zeros_like(ids[0], dtype=np.float32)
@@ -59,6 +53,10 @@ class PRNG:
         if n == 0: return seed
         gen = (self.a * int(n) + self.c) % self.m
         return (self.a * int(seed ** .5 * gen ** .5) + self.c) % self.m
+
+    def shaped(self, shape):
+        mesh = [m.ravel() for m in np.meshgrid(*[np.arange(s) for s in shape])]  # noqa
+        return self(mesh)
 
 
 class Fabric:
@@ -183,19 +181,19 @@ class Gradient:
         return self.__foo(a, *_coordsShape)
 
     @staticmethod
-    def woodSpread(n=4):
-        return Gradient(lambda a, *cs: np.sin(a * n * np.sqrt(np.sum(np.square(
-            cs - np.max(cs, axis=tuple(i for i in range(1, len(cs) + 1)), keepdims=True) / 2), axis=0))),
+    def woodSpread(n=1):
+        return Gradient(lambda a, *cm: (np.sin(a * n * np.sqrt(np.sum(np.square(
+            cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
                         "Wood")
 
     @staticmethod
-    def wood(n=4, m=8):
-        return Gradient(lambda a, *cs: np.sin(m * a + n * np.sqrt(np.sum(np.square(
-            cs - np.max(cs, axis=tuple(i for i in range(1, len(cs) + 1)), keepdims=True) / 2), axis=0))),
+    def wood(n=1, m=16):
+        return Gradient(lambda a, *cm: (np.sin(m * a + n * np.sqrt(np.sum(np.square(
+            cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
                         "Wood")
 
     @staticmethod
-    def ply(n=16):
+    def ply(n=8):
         def gradient(a):
             a = n * a
             return a - np.floor(a)
@@ -203,20 +201,32 @@ class Gradient:
         return Gradient(lambda a, *_: gradient(a), "Ply")
 
     @staticmethod
-    def terrace(n=16):
+    def terrace(n=8):
         def gradient(a):
             return np.int8(n * a) / n
 
         return Gradient(lambda a, *_: gradient(a), "Ply")
 
     @staticmethod
-    def marbleSpread(n=4):
-        return Gradient(lambda a, *cs: np.sin(np.sum(cs, axis=0) * a * n), "MarbleSpread")
+    def marbleFractal(n=1):
+        return Gradient(lambda a, *cm: (np.sin(np.sum(cm, axis=0) * a * n) + 1) / 2, "MarbleSpread")
 
     @staticmethod
-    def marble(n=4, m=8):
-        return Gradient(lambda a, *cs: np.sin((np.sum(cs, axis=0) + a * m) * n), "Marble")
+    def marble(n=1, m=32):
+        return Gradient(lambda a, *cm: (np.sin((np.sum(cm, axis=0) + a * m) * n) + 1) / 2, "Marble")
+
+    @staticmethod
+    def invert():
+        return Gradient(lambda a, *_: a.max() - a, "Invert")
+
+    @staticmethod
+    def scope(m=1):
+        def gradient(a, cm):
+            cm = [(c - c.max() / 2) / c.max() * 2 * m for c in cm]
+            return a * np.where((b := np.sum(np.square(cm), axis=0) ** .5) > 1, 0, 1 - b)
+
+        return Gradient(lambda a, *cm: gradient(a, cm), "Scope")
 
     @staticmethod
     def none():
-        return Gradient(lambda a, *cs: a, 'None ')
+        return Gradient(lambda a, *_: a, 'None ')

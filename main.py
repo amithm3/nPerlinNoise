@@ -1,28 +1,34 @@
 import plotly.graph_objects as go
 from plotly.offline import offline
 from matplotlib import pyplot
+from PIL import Image
+import numpy as np
 
 from src import *
 
 
 def main():
-    noise = NPerlinNoise(frequency=8,
-                         seed=6969,
-                         waveLength=128,
-                         _range=(0, 1),
-                         octaves=8,
-                         lacunarity=2,
-                         persistence=.5,
-                         dims=2)
-    gradient = Gradient.none()
-    res = 2
-    h, *coordsMesh = perlinGenerator(noise, *[(0, 60, 256 * res)] * 2, gradient=gradient)
-    plot = 0
+    noise: "NPerlinNoise" = NPerlinNoise(frequency=8,
+                                         seed=None,
+                                         waveLength=128,
+                                         _range=(0, 1),
+                                         octaves=8,
+                                         lacunarity=2,
+                                         persistence=.5,
+                                         dims=2)
+    gradient = Gradient.marble(), Gradient.woodSpread(), Gradient.marbleFractal()
+    res, mul = 4, .2
+    h, *coordsMesh = perlinGenerator(noise, *[(0, 128 * mul, 256 * res)] * 2, gradient=gradient)
+    plot = 1
+
+    # cmap_pil = pyplot.get_cmap('Blues')
+    # im = Image.fromarray((cmap_pil(h)[:, :, :-1] * 256).astype(np.uint8))
+    # im.save('stump.jpeg')
 
     if plot == 1:
         # -----Matplotlib-----
         fig, ax = pyplot.subplots()
-        ax.imshow(h * 255, cmap='gray')
+        ax.imshow(h * 255, cmap='Blues')
         pyplot.show()
 
     elif plot == 2:
