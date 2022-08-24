@@ -1,23 +1,23 @@
+import numpy as np
 import warnings
 from typing import Union
 
-import numpy as np
-
-from .tools import RefNDArray, findCorners, iterable, maxLen, Warp, PRNG, Fabric
+from .tools import RefNDArray, findCorners, iterable, maxLen, Warp, writeNpyCache
 
 
-class NMeta(type):
+class PMeta(type):
     def __call__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
         obj = cls.__new__(cls, *args, dims=dims, warp=warp, **kwargs)  # noqa
         obj.__init__(*args, **kwargs)
         return obj
 
 
-class NPerlin(metaclass=NMeta):
+class NPerlin(metaclass=PMeta):
+    import numpy as __np
+    __rnd = __np.random
     __DIMS: int  # max dimensional depth
-    __BIND: 'np.ndarray'  # unit bounding box of n-dimension
+    __BIND: '__np.ndarray'  # unit bounding box of n-dimension
     __WARP: tuple['Warp']  # interpolation function
-    __INF: bool = False  # fabric control
 
     @property
     def dims(self):
@@ -37,7 +37,7 @@ class NPerlin(metaclass=NMeta):
 
     @property
     def fabric(self):
-        return self.__fabric
+        return self.__fabric.copy()
 
     def __new__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
         if warp is None: warp = Warp.improved()
@@ -47,7 +47,7 @@ class NPerlin(metaclass=NMeta):
         obj = super(NPerlin, cls).__new__(cls)
         obj.__DIMS = dims
         obj.__WARP = warp
-        obj.__BIND = np.array(findCorners(obj.__DIMS))[:, :, None]
+        obj.__BIND = cls.__np.array(findCorners(obj.__DIMS))[:, :, None]
         return obj
 
     def __init__(self,
@@ -59,7 +59,6 @@ class NPerlin(metaclass=NMeta):
         :param frequency: number(s) of random values in one unit, default 8
         :param seed: seed for random values, default random value
         :param waveLength: length(s) of one unit, default 128
-        :param _range: bound for noise values, will be within the give range, default (0, 1)
         """
         if frequency is None: frequency = 8
         assert isinstance(frequency, (int, tuple)), \
@@ -68,7 +67,7 @@ class NPerlin(metaclass=NMeta):
         assert all(f > 1 and isinstance(f, int) for f in frequency) and len(frequency) == self.__DIMS, \
             "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 of length dims or 'None' for value 8"
 
-        if seed is None: seed = 2 ** 16 + np.random.randint(-(2 ** 16), 2 ** 16)
+        if seed is None: seed = 2 ** 16 + self.__rnd.randint(-(2 ** 16), 2 ** 16)
         assert (isinstance(seed, int) and 2 ** 32 > seed >= 0), \
             "param 'seed' must be +ve 'int' (or zero) less than 2^32 or 'None' for random seed"
 
@@ -86,46 +85,22 @@ class NPerlin(metaclass=NMeta):
         self.__rangeMul = self.__range[1] - self.__range[0]
 
         self.__SEED = seed
+        self.__rnd.seed(self.__SEED)
         self.__FREQUENCY = frequency
         self.__WAVE_LENGTH = waveLength
 
         # matrix of random value nodes
-        if self.__INF:
-            self.__fabric = Fabric(self.__SEED, self.__FREQUENCY)
-        else:
-            prng = PRNG(self.__SEED)
-            self.__fabric = self.loopifyArr(prng.shaped(self.__FREQUENCY).reshape(self.__FREQUENCY))
+        self.__fabric = self.loopifyArr(self.__rnd.random(self.__FREQUENCY).astype(self.__np.float32))
         # length between any 2 consecutive random values
-        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + np.uint(1))]
+        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + self.__np.uint8(1))]
 
-    def __call__(self, *coords, checkFormat: bool = True):
+    def __call__(self, *coords, checkFormat=True):
         """
-        performs pre-processing of coords & generates support data for creating noise values,
-        calls interpolation with relevant data
-
-        usage:
-            __noise((1, 2, 3, 4), (0, 0, 0, 0), (1, 1, 1, 1), ...)
-            1st iterable -> 1st dimension,
-            2nd iterable -> 2nd dimension,
-            3rd iterable -> 3rd dimension,
-            ...,
-            nth iterable -> nth dimension
-            length of each iterable is same
-
-            if checkFormat is 'True', coords can use fancy lengths, ensures safety of coords and proper formatting:
-                __noise((1, 2, 3, 4), 1) -> __noise((1, 2, 3, 4), (1, 1, 1, 1))
-                __noise((1, 2, 3, 4),) -> __noise((1, 2, 3, 4), (0, 0, 0, 0), (0, 0, 0, 0), ...)
-                __noise((1, 2, 3, 4), (1, 2)) -> __noise((1, 2, 3, 4), (1, 1, 2, 2))
-                __noise((1, 2, 3, 4, 5), (1, 2, 3)) -> __noise((1, 2, 3, 4, 5), (1, 2, 3, 3, 3))
-
-        :param coords: point(s) to generate noise value(s) at
-        :param checkFormat: if True(default) will coords can use fancy lengths, ensures safety of coords and proper formatting,
-        else will skip
-        :return: noise value(s) at coords
+        todo: reproduce docs from __noise
         """
         return self.__noise(*coords, checkFormat=checkFormat) * self.__rangeMul + self.__range[0]
 
-    def __noise(self, *coords, checkFormat: bool = True):
+    def __noise(self, *coords, checkFormat):
         """
         performs pre-processing of coords & generates support data for creating noise values,
         calls interpolation with relevant data
@@ -140,14 +115,10 @@ class NPerlin(metaclass=NMeta):
             length of each iterable is same
 
             if checkFormat is 'True', coords can use fancy lengths, ensures safety of coords and proper formatting:
-                __noise((1, 2, 3, 4), 1) -> __noise((1, 2, 3, 4), (1, 1, 1, 1))
-                __noise((1, 2, 3, 4),) -> __noise((1, 2, 3, 4), (0, 0, 0, 0), (0, 0, 0, 0), ...)
-                __noise((1, 2, 3, 4), (1, 2)) -> __noise((1, 2, 3, 4), (1, 1, 2, 2))
-                __noise((1, 2, 3, 4, 5), (1, 2, 3)) -> __noise((1, 2, 3, 4, 5), (1, 2, 3, 3, 3))
+                todo: documentation required
 
         :param coords: point(s) to generate noise value(s) at
-        :param checkFormat: if True(default) will coords can use fancy lengths, ensures safety of coords and proper formatting,
-        else will skip
+        :param checkFormat: todo: documentation required
         :return: noise value(s) at coords
         """
         if checkFormat:  # handles fancy lengths, safety of coords, proper formatting
@@ -158,7 +129,7 @@ class NPerlin(metaclass=NMeta):
             # the highest length amongst the elements of coords
             maxLength = maxLen(coords, key=lambda x: x if iterable(x) else (x,))
             # pre-allocation of required memory
-            __coords = np.zeros((self.__DIMS, maxLength), dtype=np.float32)
+            __coords = self.__np.zeros((self.__DIMS, maxLength), dtype=self.__np.float32)
             for d in range(self.__DIMS):
                 if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
                 stretch, left = divmod(maxLength, max(1, len(coords[d])))
@@ -167,8 +138,8 @@ class NPerlin(metaclass=NMeta):
                 stretch: each sub-element will be repeated 'stretch' times
                 left: last element will be repeated 'left' times to fill the remaining gap
                 """
-                __coords[d, :maxLength - left] = np.repeat(coords[d], stretch)
-                __coords[d, maxLength - left:] = np.repeat(coords[d][-1], left)
+                __coords[d, :maxLength - left] = self.__np.repeat(coords[d], stretch)
+                __coords[d, maxLength - left:] = self.__np.repeat(coords[d][-1], left)
             coords = __coords
         else:
             # assumes user has given coords in desired format
@@ -182,20 +153,19 @@ class NPerlin(metaclass=NMeta):
                 "\n     Unexpected results and/or errors may be encountered"
                 "\n Use only if you know what it does",
                 RuntimeWarning)
-        coords = coords.__abs__()[::-1]
+        coords = coords.__abs__()
         coords = RefNDArray(coords)  # Pseudo-ndarray-like object
-        assert (depth := len(np.shape(coords))) == 2, \
+        assert (depth := len(self.__np.shape(coords))) == 2, \
             f"coords must be a 2D Matrix, but given Matrix of depth {depth}"
         coords /= self.__AMP  # unitized coords
-        lowerIndex = np.floor(coords).astype(np.uint16)
-        coords -= lowerIndex  # relative unitized coords
-        # warping indices to stay within fabric bound
-        if not self.__INF: lowerIndex = lowerIndex % np.array(self.__FREQUENCY)[None].transpose()
+        lowerIndex = self.__np.floor(coords).astype(self.__np.uint16)
+        warpedLowerIndex = lowerIndex % self.__np.array(self.__FREQUENCY)[None].transpose()
 
         # bounding index & space where the coords exists within fabric
-        bIndex = (lowerIndex + self.__BIND).transpose()
+        bIndex = (warpedLowerIndex + self.__BIND).transpose()
         bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
         bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
+        coords -= lowerIndex  # relative unitized coords
 
         return self.__interpolation(bSpace, coords, self.__DIMS)
 
@@ -217,11 +187,6 @@ class NPerlin(metaclass=NMeta):
         return self.__interpolation(bSpace, relativeCoord[0], d)
 
     @staticmethod
-    def loopifyArr(arr: "np.ndarray"):
-        """
-        todo: documentation required
-        :param arr:
-        :return:
-        """
+    def loopifyArr(arr: np.ndarray):
         for si in range(len(arr.shape)): arr = np.concatenate((arr, np.expand_dims(arr.take(0, si), si)), axis=si)
         return arr
