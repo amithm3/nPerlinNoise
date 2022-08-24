@@ -3,6 +3,7 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-around;
+
   text-align: center;
   padding: 10px 20px;
 }
@@ -17,6 +18,7 @@
     animation: App-logo-spin infinite 20s linear;
   }
 }
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
@@ -40,5 +42,3 @@
     transform: rotate(360deg);
   }
 }
-
-/*# sourceMappingURL=App.css.map */

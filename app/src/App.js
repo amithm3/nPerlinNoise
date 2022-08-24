@@ -1,14 +1,19 @@
-import Canvas from "./canvas";
-import Dock from "./dock";
-import './App.css';
+import Canvas from "./canvas"
+import Dock from "./dock"
+import {Nav, Foo} from "./Nav&Foo"
+import './App.css'
 
 function App() {
-  return (
-    <div className="App">
-      <Canvas />
-      <Dock />
-    </div>
-  );
+    return (
+        <>
+            <Nav/>
+            <div className="App">
+                <Canvas/>
+                <Dock/>
+            </div>
+            <Foo/>
+        </>
+    )
 }
 
 export default App;

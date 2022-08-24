@@ -1,3 +1,7 @@
-
+#canvas--img {
+  border-radius: 5px;
+  border: 2px outset;
+  height: 512px;
+}
 
 /*# sourceMappingURL=canvas.css.map */

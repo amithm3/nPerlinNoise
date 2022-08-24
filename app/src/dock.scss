@@ -1,0 +1,63 @@
+.Dock {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  min-width: 384px;
+  height: 512px;
+}
+
+.Dock--primary, .Dock--secondary {
+  height: 100%;
+  border: 2px outset;
+}
+
+.Dock--primary {
+  margin-top: -3px;
+  border-top-right-radius: 25px;
+  border-bottom: 0;
+}
+
+.Dock--secondary {
+  border-bottom-right-radius: 25px;
+  border-top: 0;
+}
+
+.PS--merge {
+  display: flex;
+  height: 64px;
+  justify-content: space-between;
+
+  p {
+    margin: 0;
+    width: calc(50% - 14px);
+  }
+
+  p:first-child {
+    position: relative;
+    border-bottom: 2px outset;
+
+    &:before {
+      position: absolute;
+      right: -28px;
+      bottom: -2px;
+      content: '';
+      border-bottom: 31px solid silver;
+      border-left: 30px solid transparent;
+    }
+
+    &:after {
+      position: absolute;
+      right: -28px;
+      bottom: -2px;
+      content: '';
+      border-bottom: 29px solid white;
+      border-left: 26px solid transparent;
+    }
+  }
+
+  p:nth-child(2) {
+    border-top: 2px outset;
+    border-right: 2px outset;
+  }
+
+}
