@@ -1,8 +1,8 @@
 import plotly.graph_objects as go
 from plotly.offline import offline
 from matplotlib import pyplot
-from PIL import Image
-import numpy as np
+# from PIL import Image
+# import numpy as np
 
 from src import *
 
