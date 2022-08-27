@@ -3,7 +3,15 @@ from typing import Callable
 from functools import cache
 
 import numpy as np
-import numexpr as ne
+
+try:
+    import numexpr as ne
+except ImportError:
+    class ne:  # noqa
+        @staticmethod
+        def evaluate(expr, local_dict):
+            local_dict['a'] = np.array(local_dict['a'])
+            return eval(expr, {}, local_dict)
 
 
 def iterable(var):
@@ -68,6 +76,7 @@ class Fabric:
         return self.prng([i.flatten() for i in item]).reshape(item[0].shape)
 
 
+# fixme: has problem
 class RefNDArray(list):
     def __add__(self, other):
         if iterable(other):
@@ -76,12 +85,18 @@ class RefNDArray(list):
             for a in self: a += other
         return self
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __sub__(self, other):
         if iterable(other):
             for a, o in zip(self, other): a -= o
         else:
             for a in self: a -= other
         return self
+
+    def __rsub__(self, other):
+        return self.__sub__(other)
 
     def __mul__(self, other):
         if iterable(other):
@@ -90,12 +105,18 @@ class RefNDArray(list):
             for a in self: a *= other
         return self
 
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
     def __truediv__(self, other):
         if iterable(other):
             for a, o in zip(self, other): a /= o
         else:
             for a in self: a /= other
         return self
+
+    def __rtruediv__(self, other):
+        return self.__truediv__(other)
 
     def __getitem__(self, item):
         if isinstance(item, int):
@@ -130,6 +151,9 @@ class RefNDArray(list):
             for i, array in enumerate(self): self[i] = array.repeat(repeats, axis - 1)
         return self
 
+    def ravel(self):
+        return np.ravel(self)
+
 
 class Warp:
     def __repr__(self):
@@ -143,24 +167,27 @@ class Warp:
         return self.__foo(a)
 
     @staticmethod
-    def classicLerp(): return Warp(lambda a: ne.evaluate("a", local_dict={'a': a}), "ClassicLerp")
+    def lerp():
+        return Warp(lambda a: ne.evaluate("a", local_dict={'a': a}), "lerp")
 
     @staticmethod
-    def square(): return Warp(lambda a: ne.evaluate("a * a", local_dict={'a': a}), "Square")
+    def square():
+        return Warp(lambda a: ne.evaluate("a * a", local_dict={'a': a}), "Square")
 
     @staticmethod
     def cubic(): return Warp(lambda a: ne.evaluate("a * a * a", local_dict={'a': a}), "Cubic")
 
     @staticmethod
-    def improved(): return Warp(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}),
-                                "Improved")
+    def improved():
+        return Warp(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}), "Improved")
 
     @staticmethod
     def cosine(): return Warp(
         lambda a: ne.evaluate("(1 - cos(pi*a)) / 2", local_dict={'a': a, 'pi': np.float32(np.pi)}), "Cosine")
 
     @staticmethod
-    def step(): return Warp(lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a}), "Step")
+    def step():
+        return Warp(lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a}), "Step")
 
     @staticmethod
     def polynomial(n):

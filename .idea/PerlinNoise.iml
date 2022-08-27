@@ -9,6 +9,7 @@
     <orderEntry type="library" name="react" level="application" />
     <orderEntry type="library" name="react-dom" level="application" />
     <orderEntry type="library" name="babel-standalone" level="application" />
+    <orderEntry type="library" name="pyodide" level="application" />
   </component>
   <component name="PyDocumentationSettings">
     <option name="renderExternalDocumentation" value="true" />

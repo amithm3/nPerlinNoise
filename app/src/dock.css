@@ -7,53 +7,56 @@
 }
 
 .Dock--primary, .Dock--secondary {
-  height: 100%;
-  border: 2px outset;
+  border: 2px ridge;
 }
 
 .Dock--primary {
+  flex-grow: 2;
   margin-top: -3px;
   border-top-right-radius: 25px;
   border-bottom: 0;
+  padding: 10px;
+  text-align: left;
 }
 
 .Dock--secondary {
+  flex-grow: 1;
   border-bottom-right-radius: 25px;
   border-top: 0;
 }
-
 .PS--merge {
   display: flex;
-  height: 64px;
+  height: 31px;
   justify-content: space-between;
 }
 .PS--merge p {
   margin: 0;
-  width: calc(50% - 14px);
+  width: calc(50% - 15.5px);
 }
 .PS--merge p:first-child {
   position: relative;
-  border-bottom: 2px outset;
+  border-bottom: 2px ridge;
+  border-left: 2px ridge;
 }
 .PS--merge p:first-child:before {
   position: absolute;
-  right: -28px;
+  right: -29px;
   bottom: -2px;
   content: "";
   border-bottom: 31px solid silver;
-  border-left: 30px solid transparent;
+  border-left: 31px solid transparent;
 }
 .PS--merge p:first-child:after {
   position: absolute;
-  right: -28px;
+  right: -29px;
   bottom: -2px;
   content: "";
   border-bottom: 29px solid white;
-  border-left: 26px solid transparent;
+  border-left: 27px solid transparent;
 }
 .PS--merge p:nth-child(2) {
-  border-top: 2px outset;
-  border-right: 2px outset;
+  border-top: 2px ridge;
+  border-right: 2px ridge;
 }
 
 /*# sourceMappingURL=dock.css.map */

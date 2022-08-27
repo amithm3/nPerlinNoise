@@ -9,7 +9,7 @@ from src import *
 
 def main():
     noise: "NPerlinNoise" = NPerlinNoise(frequency=8,
-                                         seed=None,
+                                         seed=6969,
                                          waveLength=128,
                                          _range=(0, 1),
                                          octaves=8,
