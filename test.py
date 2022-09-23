@@ -1,11 +1,6 @@
 import numpy as np
 
-from src.tools import PRNG
-from matplotlib import pyplot
-
-prng = PRNG(7688)
-x, y = 50, 50
-arr = prng([np.tile(np.arange(0, x), x), np.arange(0, x).repeat(x)])
-arr.resize((x, y))
-
-pyplot.imshow(arr)
+A = np.array(([1, 1, 1, 1, 1],
+              [2, 2, 2, 2, 2],
+              [3, 3, 3, 2, 2]))
+B = np.array([2, 1.2, 5.1, 2, 0.])

@@ -5,6 +5,10 @@ from .tools import RefNDArray
 
 
 class NPerlinNoise(NPerlin):
+    def __repr__(self):
+        return super(NPerlinNoise, self).__repr__()[:-1] + \
+               f' oct:{self._octaves} lac:{self._lacunarity} per:{self._persistence}>'
+
     def __init__(self,
                  frequency: Union[int, tuple] = None,
                  seed: int = None,

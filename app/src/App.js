@@ -1,19 +1,12 @@
-import Canvas from "./canvas"
-import Dock from "./dock"
-import {Nav, Foo} from "./Nav&Foo"
-import './App.css'
+import logo from './logo.svg';
+import './App.css';
 
 function App() {
     return (
-        <>
-            <Nav/>
-            <div className="App">
-                <Canvas/>
-                <Dock/>
-            </div>
-            <Foo/>
-        </>
-    )
+        <div className="App">
+
+        </div>
+    );
 }
 
 export default App;

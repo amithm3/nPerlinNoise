@@ -39,6 +39,9 @@ class NPerlin(metaclass=NMeta):
     def fabric(self):
         return self.__fabric
 
+    def __repr__(self):
+        return f"<dims:{self.dims} seed:{self.seed} freq:{self.frequency} wLen:{self.waveLength} inf?:{self.__INF}>"
+
     def __new__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
         if warp is None: warp = Warp.improved()
         if not isinstance(warp, list): warp = [warp] * dims
