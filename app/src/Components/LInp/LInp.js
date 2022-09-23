@@ -10,11 +10,12 @@ export default function LInp
          labelMap = () => '',
          labelProps = {},
          inputProps = {},
-         LInpProps = {},
          type = 'text',
          min = undefined,
          max = undefined,
+         step = 1,
          value = '',
+        ...props
      }) {
     const prefix = "LInpUIdPrefix--some-string-to-make-this-difficult-to-clash-with-user-defined-id" + guid++;
     const noVals = ['', NaN, null, undefined];
@@ -24,7 +25,7 @@ export default function LInp
         onInputBefore(e);
         if (e.isPropagationStopped()) return;
         const [val, min_, max_] = ["number", "range"].includes(type) ?
-            [parseInt(e.target.value), parseInt(min), parseInt(max)] :
+            [Math.round(parseFloat(e.target.value) / step) * step, parseFloat(min), parseFloat(max)] :
             [e.target.value, min, max];
         let _val = val;
         const noVal = noVals.includes(val);
@@ -38,10 +39,10 @@ export default function LInp
     const Tag = type !== "textBox" ? "input" : "textarea";
     const text = labelMap(value_)
     return (
-        <div {...LInpProps} className="LInp">
+        <div {...props} className="LInp">
             <label {...labelProps} htmlFor={prefix}>{text}</label>
             <Tag value={value_} type={type} onInput={onInput_} wrap="off"
-                 id={prefix} {...inputProps} min={min} max={max}/>
+                 id={prefix} {...inputProps} min={min} max={max} step={step}/>
         </div>
     );
 }
