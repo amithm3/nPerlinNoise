@@ -1,17 +1,7 @@
-import warnings
-from typing import Callable
-from functools import cache
+import random as rnd
+from types import SimpleNamespace
 
 import numpy as np
-
-try:
-    import numexpr as ne
-except ImportError:
-    class ne:  # noqa
-        @staticmethod
-        def evaluate(expr, local_dict):
-            local_dict['a'] = np.array(local_dict['a'])
-            return eval(expr, {}, local_dict)
 
 
 def iterable(var):
@@ -37,67 +27,95 @@ def findCorners(dim):
         return corners
 
 
-class PRNG:
-    def __init__(self, seed):
-        self.a = 1664525
-        self.c = 1013904223
-        self.m = 2 ** 32
-        self.seed = seed
-
-    def __call__(self, ids):
-        return self.__n_rnd(ids, [self.seed] * len(ids[0]))
-
-    def __n_rnd(self, ids, seeds):
-        if len(ids) == 1:
-            arr = np.zeros_like(ids[0], dtype=np.float32)
-            for i, x in enumerate(ids[0]): arr[i] = self.__gen(x, seeds[i]) / self.m
-        else:
-            seeds = [self.__gen(x, seeds[i]) for i, x in enumerate(ids[-1])]
-            arr = self.__n_rnd(ids[:-1], seeds)
-        return arr
-
-    @cache
-    def __gen(self, n, seed):
-        if n == 0: return seed
-        gen = (self.a * int(n) + self.c) % self.m
-        return (self.a * int(seed ** .5 * gen ** .5) + self.c) % self.m
-
-    def shaped(self, shape):
-        mesh = [m.ravel() for m in np.meshgrid(*[np.arange(s) for s in shape])]  # noqa
-        return self(mesh)
-
-
-class Fabric:
-    def __init__(self, seed, frequency):
-        self.frequency = frequency
-        self.prng = PRNG(seed)
-
+class NTuple(tuple):
     def __getitem__(self, item):
-        return self.prng([i.flatten() for i in item]).reshape(item[0].shape)
-
-
-# fixme: has problem
-class RefNDArray(list):
-    def __add__(self, other):
-        if iterable(other):
-            for a, o in zip(self, other): a += o
+        if isinstance(item, slice):
+            stop = r2 = None
+            if item.stop and item.stop >= len(self):
+                item, stop = slice(item.start, stop, item.step), item.stop
+                r2 = (self[-1],) * ((stop - len(self) - 1) // (item.step if item.step is None else 1))
+            return super(NTuple, self).__getitem__(item) + r2
         else:
-            for a in self: a += other
-        return self
+            if item >= len(self): item = -1
+            return super(NTuple, self).__getitem__(item)
 
-    def __radd__(self, other):
-        return self.__add__(other)
+    def __new__(cls, *elements):
+        return super(NTuple, cls).__new__(cls, elements)
 
-    def __sub__(self, other):
-        if iterable(other):
-            for a, o in zip(self, other): a -= o
+
+class XPrng:
+    __a = np.float32(1664525)
+    __c = np.float32(1013904223)
+    __m = np.float32(2 ** 32)
+
+    @property
+    def acm(self):
+        return SimpleNamespace(a=self.__a, c=self.__c, m=self.__m)
+
+    def __init__(self, seed: int = None):
+        if seed is None: seed: int = rnd.randint(0, self.__m)
+        assert (isinstance(seed, int) and self.__m > seed >= 0), \
+            f"param 'seed' must be ({self.__m} > 'int' >= 0) or 'None' for default random seed"
+
+        self.__seed = seed
+
+    def __call__(self, x):
+        return self.atX(x, self.__seed) / self.__m
+
+    def atX(self, x: int, seed: int):
+        off = (self.__c * ((self.__a * x) ** .5 // 1) + seed) % self.__m
+        return np.where(x == 0, seed, (self.__a * ((seed * off) ** .5 // 1) + self.__c) % self.__m)
+
+    def seed(self, seed: int = None) -> int:
+        if seed is not None: self.__seed = seed
+        return self.__seed
+
+
+class NPrng:
+    def __init__(self, seed=None):
+        self.__prng = XPrng(seed)
+        self.__seed = self.__prng.seed()
+
+    def __call__(self, *ns):
+        return self.atN(self.__seed, ns) / self.__prng.acm.m
+
+    def atN(self, seed, ns):
+        if len(ns) == 1:
+            return self.__prng.atX(ns[0], seed)
         else:
-            for a in self: a -= other
-        return self
+            seed = self.__prng.atX(ns[-1], seed)
+            return self.atN(seed, ns[:-1])
 
-    def __rsub__(self, other):
-        return self.__sub__(other)
+    def seed(self, seed: int = None) -> int:
+        if seed is not None: self.__seed = seed
+        return self.__seed
 
+    def shaped(self, shape, off=None):
+        if off is None: off = (0,) * len(shape)
+        mesh = [m.ravel() for m in np.meshgrid(*[np.arange(o, s + o) for s, o in zip(shape, off)])]  # noqa
+        return self(*mesh).reshape(shape)
+
+
+class NFabric:
+    def __init__(self, seed=None):
+        self.__prng = NPrng(seed)
+        self.__seed = self.__prng.seed()
+
+    # todo: make slice item and index item available
+    def __getitem__(self, item):
+        if iterable(item):
+            # todo: check if prod(shape) > prod(np.shape(item)) and take different paths
+            off, shape = np.array([(i.min(), i.max()) for i in item]).transpose()
+            fabric = self.__prng.shaped(shape + 1, off)
+            return fabric[item]
+        else:
+            raise NotImplementedError("slice item and index item un-available, only iterable implemented")
+
+    def seed(self) -> int:
+        return self.__seed
+
+
+class RefND(list):
     def __mul__(self, other):
         if iterable(other):
             for a, o in zip(self, other): a *= o
@@ -118,142 +136,5 @@ class RefNDArray(list):
     def __rtruediv__(self, other):
         return self.__truediv__(other)
 
-    def __getitem__(self, item):
-        if isinstance(item, int):
-            return super(RefNDArray, self).__getitem__(item)
-        elif isinstance(item, slice):
-            return RefNDArray(super(RefNDArray, self).__getitem__(item))
-        else:
-            return RefNDArray([array[item[1:]] for array in self[item[0]]])
-
-    def np_array(self, c):
-        self._non_ndarray_present = True
-        return np.array(c)
-
-    def __init__(self, arr, **kwargs):
-        try:
-            dep_warn = kwargs["dep_warn"]
-        except KeyError:
-            dep_warn = False
-        self._non_ndarray_present = False
-        super(RefNDArray, self).__init__(self.np_array(c) if not isinstance(c, np.ndarray) else c for c in arr)
-        if self._non_ndarray_present and not dep_warn: warnings.warn(
-            "Using RefNDArray on array with non ndarray elements is not recommended, "
-            "will convert element(s) to ndarray without warning in future",
-            FutureWarning)
-
-    def repeat(self, repeats=None, axis=None):
-        if repeats is None: repeats = 1
-        if axis is None: axis = 0
-        if axis == 0:
-            self.extend([self] * repeats)
-        else:
-            for i, array in enumerate(self): self[i] = array.repeat(repeats, axis - 1)
-        return self
-
-    def ravel(self):
-        return np.ravel(self)
-
-
-class Warp:
-    def __repr__(self):
-        return f"<Warp:{self.__name}>"
-
-    def __init__(self, foo: Callable[['np.ndarray'], 'np.ndarray'], _name: str):
-        self.__name = _name
-        self.__foo = foo
-
-    def __call__(self, a):
-        return self.__foo(a)
-
-    @staticmethod
-    def lerp():
-        return Warp(lambda a: ne.evaluate("a", local_dict={'a': a}), "lerp")
-
-    @staticmethod
-    def square():
-        return Warp(lambda a: ne.evaluate("a * a", local_dict={'a': a}), "Square")
-
-    @staticmethod
-    def cubic(): return Warp(lambda a: ne.evaluate("a * a * a", local_dict={'a': a}), "Cubic")
-
-    @staticmethod
-    def improved():
-        return Warp(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}), "Improved")
-
-    @staticmethod
-    def cosine(): return Warp(
-        lambda a: ne.evaluate("(1 - cos(pi*a)) / 2", local_dict={'a': a, 'pi': np.float32(np.pi)}), "Cosine")
-
-    @staticmethod
-    def step():
-        return Warp(lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a}), "Step")
-
-    @staticmethod
-    def polynomial(n):
-        def poly(): return Warp(lambda a, nn=n: ne.evaluate("a ** nn", local_dict={'a': a, 'nn': nn}), f"Poly{n}")
-
-        return poly
-
-
-class Gradient:
-    def __repr__(self):
-        return f"<Gradient:{self.__name}>"
-
-    def __init__(self, foo: Callable[['np.ndarray', ...], 'np.ndarray'], _name):
-        self.__name = _name
-        self.__foo = foo
-
-    def __call__(self, a, *_coordsShape):
-        return self.__foo(a, *_coordsShape)
-
-    @staticmethod
-    def woodSpread(n=1):
-        return Gradient(lambda a, *cm: (np.sin(a * n * np.sqrt(np.sum(np.square(
-            cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
-                        "Wood")
-
-    @staticmethod
-    def wood(n=1, m=16):
-        return Gradient(lambda a, *cm: (np.sin(m * a + n * np.sqrt(np.sum(np.square(
-            cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
-                        "Wood")
-
-    @staticmethod
-    def ply(n=8):
-        def gradient(a):
-            a = n * a
-            return a - np.floor(a)
-
-        return Gradient(lambda a, *_: gradient(a), "Ply")
-
-    @staticmethod
-    def terrace(n=8):
-        def gradient(a):
-            return np.int8(n * a) / n
-
-        return Gradient(lambda a, *_: gradient(a), "Ply")
-
-    @staticmethod
-    def marbleFractal(n=1):
-        return Gradient(lambda a, *cm: (np.sin(np.sum(cm, axis=0) * a * n) + 1) / 2, "MarbleSpread")
-
-    @staticmethod
-    def marble(n=1, m=32):
-        return Gradient(lambda a, *cm: (np.sin((np.sum(cm, axis=0) + a * m) * n) + 1) / 2, "Marble")
-
-    @staticmethod
-    def invert():
-        return Gradient(lambda a, *_: a.max() - a, "Invert")
-
-    @staticmethod
-    def scope(m=1):
-        def gradient(a, cm):
-            cm = [(c - c.max() / 2) / c.max() * 2 * m for c in cm]
-            return a * np.where((b := np.sum(np.square(cm), axis=0) ** .5) > 1, 0, 1 - b)
-
-        return Gradient(lambda a, *cm: gradient(a, cm), "Scope")
-
-    @staticmethod
-    def none():
-        return Gradient(lambda a, *_: a, 'None ')
+    def __init__(self, obj):
+        super(RefND, self).__init__(obj)

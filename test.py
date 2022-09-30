@@ -1,17 +1,21 @@
 import numpy as np
 from matplotlib import pyplot
-from src2.tools import NFabric
+from src import Noise
 
-x, y = 1000, 1000
-n = NFabric()
-mesh = np.meshgrid(np.linspace(0, x, x), np.linspace(0, y, y))
+mul, res = 1, 8
+x, y = 128 * mul, 128 * mul
+n = Noise()
+mesh = np.meshgrid(np.linspace(0, x, x * res), np.linspace(0, y, y * res))
 
 
 def getH():
-    return n[mesh]
+    return n(*mesh, checkFormat=True)
 
 
 h = getH()
-fig, ax = pyplot.subplots()
-ax.imshow(h, cmap='gray')
-pyplot.show()
+try:
+    fig, ax = pyplot.subplots()
+    ax.imshow(h, cmap='Blues')
+    pyplot.show()
+except NameError:
+    pass

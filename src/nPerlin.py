@@ -3,166 +3,100 @@ from typing import Union
 
 import numpy as np
 
-from .tools import RefNDArray, findCorners, iterable, maxLen, Warp, PRNG, Fabric
+from .tools import NTuple, NPrng, NFabric, iterable, maxLen, findCorners
+from .selectionTools import Warp
 
 
-class NMeta(type):
-    def __call__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
-        obj = cls.__new__(cls, *args, dims=dims, warp=warp, **kwargs)  # noqa
-        obj.__init__(*args, **kwargs)
-        return obj
-
-
-class NPerlin(metaclass=NMeta):
-    __DIMS: int  # max dimensional depth
-    __BIND: 'np.ndarray'  # unit bounding box of n-dimension
-    __WARP: tuple['Warp']  # interpolation function
-    __INF: bool = False  # fabric control
-
-    @property
-    def dims(self):
-        return self.__DIMS
+class NPerlin:
+    # __chunked__ = True
+    __chunked__ = False
 
     @property
     def seed(self):
-        return self.__SEED
+        return self.__seed
 
     @property
     def frequency(self):
-        return self.__FREQUENCY
+        return self.__frequency
 
     @property
     def waveLength(self):
-        return self.__WAVE_LENGTH
+        return self.__wavelength
 
     @property
     def fabric(self):
         return self.__fabric
 
     def __repr__(self):
-        return f"<dims:{self.dims} seed:{self.seed} freq:{self.frequency} wLen:{self.waveLength} inf?:{self.__INF}>"
-
-    def __new__(cls, *args, dims, warp: Union['Warp', list['Warp']] = None, **kwargs):
-        if warp is None: warp = Warp.improved()
-        if not isinstance(warp, list): warp = [warp] * dims
-        assert isinstance(dims, int) and dims > 0
-        assert isinstance(warp, list) and len(warp) == dims
-        obj = super(NPerlin, cls).__new__(cls)
-        obj.__DIMS = dims
-        obj.__WARP = warp
-        obj.__BIND = np.array(findCorners(obj.__DIMS))[:, :, None]
-        return obj
+        return f"<seed:{self.seed} freq:{self.frequency} wLen:{self.waveLength}>"
 
     def __init__(self,
                  frequency: Union[int, tuple[int, ...]] = None,
-                 seed: int = None,
                  waveLength: Union[float, tuple[float]] = None,
+                 warp: Union['Warp', tuple['Warp']] = None,
+                 seed: int = None,
                  _range: tuple[float, float] = None):
         """
-        :param frequency: number(s) of random values in one unit, default 8
+        :param frequency: number of random values in one unit respect to dimension, default 8
+        :param waveLength: length of one unit respect to dimension, default 128
+        :param warp: the interpolation function used between random value nodes, default selectionTools.Warp.improved()
         :param seed: seed for random values, default random value
-        :param waveLength: length(s) of one unit, default 128
-        :param _range: bound for noise values, will be within the give range, default (0, 1)
+        :param _range: bound for noise values, output will be within the give range, default (0, 1)
         """
         if frequency is None: frequency = 8
-        assert isinstance(frequency, (int, tuple)), \
-            "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 of length dims or 'None' for value 8"
-        if isinstance(frequency, int): frequency = (frequency,) * self.__DIMS
-        assert all(f > 1 and isinstance(f, int) for f in frequency) and len(frequency) == self.__DIMS, \
-            "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 of length dims or 'None' for value 8"
-
-        if seed is None: seed = 2 ** 16 + np.random.randint(-(2 ** 16), 2 ** 16)
-        assert (isinstance(seed, int) and 2 ** 32 > seed >= 0), \
-            "param 'seed' must be +ve 'int' (or zero) less than 2^32 or 'None' for random seed"
-
         if waveLength is None: waveLength = 128
-        if isinstance(waveLength, (int, float)): waveLength = (waveLength,) * self.__DIMS
-        assert isinstance(waveLength, tuple) and all(w > 0 and isinstance(w, (int, float)) for w in waveLength) and \
-               len(waveLength) == self.__DIMS, \
-            "param 'waveLength' must be +ve 'float'('int') or " \
-            "'tuple' of +ve 'float'('int) of length dims or 'None' for value 100"  # noqa
-
         if _range is None: _range = (0, 1)
+        if warp is None: warp = Warp.improved()
+
+        if isinstance(frequency, int): frequency = (frequency,)
+        assert isinstance(frequency, tuple) and all(f > 1 and isinstance(f, int) for f in frequency), \
+            "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 or 'None' for default 8"
+
+        if isinstance(waveLength, (int, float)): waveLength = (waveLength,)
+        assert isinstance(waveLength, tuple) and all(w > 0 and isinstance(w, (int, float)) for w in waveLength), \
+            "param 'waveLength' must be 'float'('int') > 0 or 'tuple' of 'float'('int') > 0 or 'None' for default 128"
+
+        if isinstance(warp, Warp): warp = (warp,)
+        assert isinstance(warp, tuple) and all(isinstance(w, Warp) for w in warp), \
+            "param 'warp' must be 'selectionTools.Warp' or a 'tuple' of 'selectionTools.Warp' or" \
+            "'None' for default 'selectionTools.Warp.improved()'"
+
         assert len(_range) == 2 and isinstance(_range[0], (int, float)) and isinstance(_range[1], (int, float)), \
             "param '_range' must be a tuple of two 'float'('int')"
+
+        self.__frequency = NTuple(*frequency if not self.__chunked__ else [f * self.__chunked__ for f in frequency])
+        self.__wavelength = NTuple(*waveLength if not self.__chunked__ else [w * self.__chunked__ for w in waveLength])
+        self.__warp = NTuple(*warp)
         self.__range = _range
         self.__rangeMul = self.__range[1] - self.__range[0]
 
-        self.__SEED = seed
-        self.__FREQUENCY = frequency
-        self.__WAVE_LENGTH = waveLength
-
-        # matrix of random value nodes
-        if self.__INF:
-            self.__fabric = Fabric(self.__SEED, self.__FREQUENCY)
+        # matrix generator of random value nodes
+        if not self.__chunked__:
+            fab = self.__fabric = NFabric(seed)
         else:
-            prng = PRNG(self.__SEED)
-            self.__fabric = self.loopifyArr(prng.shaped(self.__FREQUENCY).reshape(self.__FREQUENCY))
+            self.__fabric = self.loopifyArr((fab := NPrng(seed)).shaped(self.__frequency).astype(np.float32))
+        self.__seed = fab.seed()
         # length between any 2 consecutive random values
-        self.__AMP = [w / (f - 1) for w, f in zip(self.__WAVE_LENGTH, self.__FREQUENCY + np.uint(1))]
+        self.__amp = NTuple(*[w / (f - 1) for w, f in zip(self.__wavelength, self.__frequency)])
 
     def __call__(self, *coords, checkFormat: bool = True):
-        """
-        performs pre-processing of coords & generates support data for creating noise values,
-        calls interpolation with relevant data
+        if len(coords) == 0: coords = (0,)
+        return self.__noise([np.ravel(coo) for coo in coords], checkFormat).reshape(np.shape(coords[0]))
 
-        usage:
-            __noise((1, 2, 3, 4), (0, 0, 0, 0), (1, 1, 1, 1), ...)
-            1st iterable -> 1st dimension,
-            2nd iterable -> 2nd dimension,
-            3rd iterable -> 3rd dimension,
-            ...,
-            nth iterable -> nth dimension
-            length of each iterable is same
-
-            if checkFormat is 'True', coords can use fancy lengths, ensures safety of coords and proper formatting:
-                __noise((1, 2, 3, 4), 1) -> __noise((1, 2, 3, 4), (1, 1, 1, 1))
-                __noise((1, 2, 3, 4),) -> __noise((1, 2, 3, 4), (0, 0, 0, 0), (0, 0, 0, 0), ...)
-                __noise((1, 2, 3, 4), (1, 2)) -> __noise((1, 2, 3, 4), (1, 1, 2, 2))
-                __noise((1, 2, 3, 4, 5), (1, 2, 3)) -> __noise((1, 2, 3, 4, 5), (1, 2, 3, 3, 3))
-
-        :param coords: point(s) to generate noise value(s) at
-        :param checkFormat: if True(default) will coords can use fancy lengths, ensures safety of coords and proper formatting,
-        else will skip
-        :return: noise value(s) at coords
-        """
-        return self.__noise(*coords, checkFormat=checkFormat) * self.__rangeMul + self.__range[0]
-
-    def __noise(self, *coords, checkFormat: bool = True):
-        """
-        performs pre-processing of coords & generates support data for creating noise values,
-        calls interpolation with relevant data
-
-        usage:
-            __noise((1, 2, 3, 4), (0, 0, 0, 0), (1, 1, 1, 1), ...)
-            1st iterable -> 1st dimension,
-            2nd iterable -> 2nd dimension,
-            3rd iterable -> 3rd dimension,
-            ...,
-            nth iterable -> nth dimension
-            length of each iterable is same
-
-            if checkFormat is 'True', coords can use fancy lengths, ensures safety of coords and proper formatting:
-                __noise((1, 2, 3, 4), 1) -> __noise((1, 2, 3, 4), (1, 1, 1, 1))
-                __noise((1, 2, 3, 4),) -> __noise((1, 2, 3, 4), (0, 0, 0, 0), (0, 0, 0, 0), ...)
-                __noise((1, 2, 3, 4), (1, 2)) -> __noise((1, 2, 3, 4), (1, 1, 2, 2))
-                __noise((1, 2, 3, 4, 5), (1, 2, 3)) -> __noise((1, 2, 3, 4, 5), (1, 2, 3, 3, 3))
-
-        :param coords: point(s) to generate noise value(s) at
-        :param checkFormat: if True(default) will coords can use fancy lengths, ensures safety of coords and proper formatting,
-        else will skip
-        :return: noise value(s) at coords
-        """
+    # todo: make full support for fancy coords
+    def __noise(self, coords: list["np.ndarray"], checkFormat: bool = True):
         if checkFormat:  # handles fancy lengths, safety of coords, proper formatting
-            assert 0 < (length := len(coords)) <= self.__DIMS, \
-                f"coords expected maximum of {self.__DIMS} argument(s) and minimum of 1 argument, " \
-                f"but {length} arguments given"
-            coords = [*coords, *[[0]] * (self.__DIMS - length)]  # minimal coords of length dims
+            if self.__chunked__:
+                assert len(coords) <= len(self.__frequency), \
+                    f"too many dimensions for coords: noise fabric is {len(self.__frequency)}-dimensional, " \
+                    f"but {len(coords)} were indexed.\n" \
+                    f"You are seeing this Error because checkFormat and NPerlin.__chunked__ are enabled."
             # the highest length amongst the elements of coords
             maxLength = maxLen(coords, key=lambda x: x if iterable(x) else (x,))
+            coords = list(coords)
             # pre-allocation of required memory
-            __coords = np.zeros((self.__DIMS, maxLength), dtype=np.float32)
-            for d in range(self.__DIMS):
+            __coords = np.zeros((len(coords), maxLength), dtype=np.float32)
+            for d in range(len(coords)):
                 if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
                 stretch, left = divmod(maxLength, max(1, len(coords[d])))
                 """
@@ -175,32 +109,30 @@ class NPerlin(metaclass=NMeta):
             coords = __coords
         else:
             # assumes user has given coords in desired format
-            assert (length := len(coords)) == self.__DIMS, \
-                f"coords expected {self.__DIMS} arguments(s), but {length} arguments given"
             warnings.warn(
                 "Using 'checkFormat' as 'False' is unsafe"
-                "\n     Can't guarantee safety of arguments(*coords),"
-                "\n     Can't use fancy coords,"
-                "\n     May face performance uncertainty(can be slower or faster for different cases),"
-                "\n     Unexpected results and/or errors may be encountered"
+                "\n    Can't guarantee safety of arguments(*coords),"
+                "\n    Can't use fancy coords,"
+                "\n    May face performance uncertainty(can be slower or faster for different cases),"
+                "\n    Unexpected results and/or errors may be encountered"
                 "\n Use only if you know what it does",
-                RuntimeWarning)
+                RuntimeWarning
+            )
         coords = coords.__abs__()[::-1]
-        coords = RefNDArray(coords)  # Pseudo-ndarray-like object
-        assert (depth := len(np.shape(coords))) == 2, \
-            f"coords must be a 2D Matrix, but given Matrix of depth {depth}"
-        coords /= self.__AMP  # unitized coords
+        assert (depth := len(coords.shape)) == 2, \
+            f"coords must be a 2D Matrix of nth row representing nth dimension, but given Matrix of depth {depth}"
+        coords /= self.__amp  # unitized coords
         lowerIndex = np.floor(coords).astype(np.uint16)
         coords -= lowerIndex  # relative unitized coords
-        # warping indices to stay within fabric bound
-        if not self.__INF: lowerIndex = lowerIndex % np.array(self.__FREQUENCY)[None].transpose()
 
+        # wrapping in-valid index under the valid range
+        if self.__chunked__: lowerIndex = lowerIndex % np.array(self.__frequency)[None].transpose()
         # bounding index & space where the coords exists within fabric
-        bIndex = (lowerIndex + self.__BIND).transpose()
-        bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(self.__DIMS))]
-        bSpace = bSpace.reshape((-1, *[2] * self.__DIMS))
+        bIndex = (lowerIndex + np.array(findCorners(len(coords)))[..., None]).transpose()
+        bSpace = self.__fabric[tuple(bIndex[:, d] for d in range(len(coords)))].astype(np.float32)
+        bSpace = bSpace.reshape((-1, *[2] * len(coords)))
 
-        return self.__interpolation(bSpace, coords, self.__DIMS)
+        return self.__interpolation(bSpace, coords, len(coords))
 
     def __interpolation(self, bSpace, relativeCoord, d):
         """
@@ -212,7 +144,7 @@ class NPerlin(metaclass=NMeta):
         """
         if len(bSpace.shape) == 2:
             heightStretch = bSpace[:, 1] - bSpace[:, 0]
-            return (self.__WARP[d - 1](relativeCoord) * heightStretch + bSpace[:, 0]).ravel()
+            return (self.__warp[d - 1](relativeCoord) * heightStretch + bSpace[:, 0]).ravel()
         bSpace = bSpace.reshape([-1, *bSpace.shape[2:]])
         bSpace = self.__interpolation(bSpace, relativeCoord[1:].repeat(2, axis=1), d - 1)
         bSpace = bSpace.reshape((-1, 2))
