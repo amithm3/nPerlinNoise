@@ -9,11 +9,12 @@ mesh = np.meshgrid(np.linspace(0, x, x * res), np.linspace(0, y, y * res))
 
 
 def getH():
-    return n(*mesh, checkFormat=True).reshape(x * res, y * res)
+    return n(*mesh).reshape(x * res, y * res)
 
 
 h = getH()
 try:
+    print(h)
     fig, ax = pyplot.subplots()
     ax.imshow(h, cmap="gray")
     pyplot.show()

@@ -1,6 +1,3 @@
-import random as rnd
-from types import SimpleNamespace
-
 import numpy as np
 
 
@@ -31,22 +28,6 @@ def findCorners(dim):
         return corners
 
 
-class NTuple(tuple):
-    def __getitem__(self, item):
-        if isinstance(item, slice):
-            stop = r2 = ()
-            if item.stop and item.stop >= len(self):
-                item, stop = slice(item.start, stop, item.step), item.stop
-                r2 = (self[-1],) * ((stop - len(self) - 1) // (1 if item.step is None else 1))
-            return super(NTuple, self).__getitem__(item) + r2
-        else:
-            if item >= len(self): item = -1
-            return super(NTuple, self).__getitem__(item)
-
-    def __new__(cls, *elements):
-        return super(NTuple, cls).__new__(cls, elements)
-
-
 def rand3(X, Y, z):
     # mix around the bits in X
     x = X * 3266489917 + 374761393
@@ -69,21 +50,22 @@ def rand3(X, Y, z):
 
 
 class NPrng:
-    __m = 2 ** 32
+    __m = np.uint32(2 ** 32 - 1)
 
-    def __init__(self, seed=None):
-        if seed is None: seed: int = rnd.randint(0, self.__m)
-        assert (isinstance(seed, int) and self.__m > seed >= 0), \
-            f"param 'seed' must be ({self.__m} > 'int' >= 0) or 'None' for default random seed"
+    def __init__(self, seed: int = None):
+        self.seed(seed)
         self.__seed = np.int64(seed)
 
     def __call__(self, *ns):
         seed = self.__seed
-        for i, n in enumerate(ns): seed = rand3(np.int64(n), np.int64(seed), np.int64(i))
+        for i, n in enumerate(ns): seed = rand3(np.uint32(n), np.uint32(seed), np.uint32(i))
         return seed / self.__m
 
     def seed(self, seed: int = None) -> int:
-        if seed is not None: self.__seed = seed
+        if seed is not None:
+            assert (isinstance(seed, int) and self.__m > seed >= 0), \
+                f"param 'seed' must be ({self.__m} > 'int' >= 0) or 'None' for default random seed"
+            self.__seed = seed
         return self.__seed
 
     def shaped(self, shape, off=None):
@@ -93,26 +75,35 @@ class NPrng:
         return self(*mesh).reshape(shape)
 
 
-class RefND(list):
-    def __mul__(self, other):
+class NTuple(tuple):
+    def __mul__(self, other) -> "NTuple":
         if iterable(other):
-            for a, o in zip(self, other): a *= o
+            return NTuple(a * o for a, o in zip(self[:len(other)], other))
         else:
-            for a in self: a *= other
-        return self
+            return NTuple(a * other for a in self)
 
-    def __rmul__(self, other):
+    def __rmul__(self, other) -> "NTuple":
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other) -> "NTuple":
         if iterable(other):
-            for a, o in zip(self, other): a /= o
+            return NTuple(a / o for a, o in zip(self[:len(other)], other))
         else:
-            for a in self: a /= other
-        return self
+            return NTuple(a / other for a in self)
 
-    def __rtruediv__(self, other):
-        return self.__truediv__(other)
+    def __rtruediv__(self, other) -> "NTuple":
+        if iterable(other):
+            return NTuple(o / a for a, o in zip(self[:len(other)], other))
+        else:
+            return NTuple(other / a for a in self)
 
-    def __init__(self, obj):
-        super(RefND, self).__init__(obj)
+    def __getitem__(self, item):
+        if isinstance(item, slice):
+            r2 = ()
+            if item.stop and item.stop >= len(self):
+                item, stop = slice(item.start, None, item.step), item.stop
+                r2 = (self[-1],) * ((stop - len(self)) // (1 if item.step is None else 1))
+            return super(NTuple, self).__getitem__(item) + r2
+        else:
+            if item >= len(self): item = -1
+            return super(NTuple, self).__getitem__(item)

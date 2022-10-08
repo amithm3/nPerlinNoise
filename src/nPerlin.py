@@ -8,50 +8,58 @@ from .selectionTools import Warp
 
 class NPerlin:
     @property
-    def seed(self):
+    def seed(self) -> int:
         return self.__prng.seed()
 
-    def setSeed(self, val):
-        self.__prng.seed(val)
+    def setSeed(self, seed: int):
+        self.__prng.seed(seed)
 
     @property
-    def frequency(self):
-        return NTuple(*self.__frequency)
-
-    def setFrequency(self, val):
-        self.__frequency = self.__getFrequency(val)
-        self.__amp = self.__calcAmp()
+    def frequency(self) -> "NTuple[int]":
+        return self.__frequency
 
     @property
-    def waveLength(self):
+    def mFrequency(self) -> "NTuple[int]":
+        return self.__frequency * self.fwm
+
+    def setFrequency(self, frequency: Union[int, tuple[int, ...]]):
+        self.__frequency = self.__getFrequency(frequency)
+
+    @property
+    def waveLength(self) -> "NTuple[float]":
         return self.__waveLength
 
-    def setWaveLength(self, val):
-        self.__waveLength = self.__getWaveLength(val)
-        self.__amp = self.__calcAmp()
+    @property
+    def mWaveLength(self) -> "NTuple[float]":
+        return self.__waveLength * self.fwm
+
+    def setWaveLength(self, waveLength: Union[float, tuple[float]]):
+        self.__waveLength = self.__getWaveLength(waveLength)
 
     @property
-    def warp(self):
+    def warp(self) -> "NTuple[Warp]":
         return self.__warp
 
-    def setWarp(self, val):
-        self.__warp = self.__getWarp(val)
+    def setWarp(self, warp: Union['Warp', tuple['Warp']]):
+        self.__warp = self.__getWarp(warp)
 
     @property
-    def range(self):
+    def range(self) -> tuple[float, float]:
         return self.__range
 
-    def setRange(self, val):
-        self.__range, self.__rangeMul = self.__getRange(val)
+    def setRange(self, _range: tuple[float, float]):
+        self.__range, self.__rangeMul = self.__getRange(_range)
 
-    def fabric(self, shape, off=None):
+    def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None):
         return self.__prng.shaped(shape, off)
 
-    def setFWM(self, val):
-        self.__fwm = val
+    @property
+    def amp(self) -> "NTuple[float]":  # length between any 2 consecutive random values
+        return NTuple(w / f for w, f in zip(self.mWaveLength, self.mFrequency))
 
     def __repr__(self):
-        return f"<seed:{self.seed} freq:{self.frequency} wLen:{self.waveLength} warp:{self.warp} range:{self.range}>"
+        return f"<seed:{self.seed} freq:{self.frequency} wLen:{self.waveLength} warp:{self.warp} range:{self.range} " \
+               f"fwm{self.fwm}>"
 
     def __init__(self,
                  seed: int = None,
@@ -73,13 +81,12 @@ class NPerlin:
         if warp is None: warp = Warp.improved()
         if _range is None: _range = (0, 1)
 
-        self.__fwm = fwm
+        self.fwm = fwm
         self.__frequency = self.__getFrequency(frequency)
         self.__waveLength = self.__getWaveLength(waveLength)
         self.__prng = NPrng(seed)  # matrix of random value nodes
         self.__warp = self.__getWarp(warp)
         self.__range, self.__rangeMul = self.__getRange(_range)
-        self.__amp = self.__calcAmp()  # length between any 2 consecutive random values
 
     # todo: implement checkFormat
     def __call__(self, *coords, checkFormat: bool = True):
@@ -103,24 +110,22 @@ class NPerlin:
         heightStretch = pairs[:, 1] - pairs[:, 0]
         return self.__warp[d](coords) * heightStretch + pairs[:, 0]
 
+    # bottleneck: takes a lot of time for higher dims
     def findBounds(self, fCoords):
-        bCoords = fCoords[::-1] / self.__amp  # unitized coords
+        bCoords = fCoords[::-1] / [[a] for a in self.amp[:len(fCoords)]]  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
         bCoords -= lowerIndex  # relative unitized coords [0, 1]
         # bounding box indexes for the coords
         bIndex = (lowerIndex + np.array(findCorners(len(bCoords)))[..., None]).transpose((1, 0, 2))
-        bIndex %= self.__frequency  # wrapping indices under the valid range
+        bIndex %= [[[f]] for f in self.mFrequency[:len(bIndex)]]  # wrapping indices under the valid range
         return bIndex, bCoords[::-1]
 
     def findFab(self, bIndex: "np.ndarray"):
-        bFab = bIndex.min((1, 2)), bIndex.max((1, 2))
+        bFab = bIndex.min((1, 2)), bIndex.max((1, 2))  # noqa
         return self.__prng.shaped((bFab[1] - bFab[0]) + 1, bFab[0])
 
     def applyRange(self, noise):
         return noise * self.__rangeMul + self.range[0]
-
-    def __calcAmp(self):
-        return NTuple(*[w / f for w, f in zip(self.__waveLength, self.__frequency)])
 
     @staticmethod
     def formatCoords(coords: list) -> "np.ndarray":
@@ -149,18 +154,20 @@ class NPerlin:
             f"coords must be a 2D Matrix of nth row representing nth dimension, but given Matrix of depth {depth}"
         return __coords.__abs__()
 
-    def __getFrequency(self, frequency):
+    @staticmethod
+    def __getFrequency(frequency):
         if isinstance(frequency, int): frequency = (frequency,)
         assert isinstance(frequency, tuple) and all(f > 1 and isinstance(f, int) for f in frequency), \
             "param 'frequency' must be 'int' > 1 or 'tuple' of 'int' > 1 or 'None' for default 8"
-        frequency = NTuple(*[f * self.__fwm for f in frequency])
+        frequency = NTuple(frequency)
         return frequency
 
-    def __getWaveLength(self, waveLength):
+    @staticmethod
+    def __getWaveLength(waveLength):
         if isinstance(waveLength, (int, float)): waveLength = (waveLength,)
         assert isinstance(waveLength, tuple) and all(w > 0 and isinstance(w, (int, float)) for w in waveLength), \
             "param 'waveLength' must be 'float'('int') > 0 or 'tuple' of 'float'('int') > 0 or 'None' for default 128"
-        waveLength = NTuple(*[w * self.__fwm for w in waveLength])
+        waveLength = NTuple(waveLength)
         return waveLength
 
     @staticmethod
@@ -169,7 +176,7 @@ class NPerlin:
         assert isinstance(warp, tuple) and all(isinstance(w, Warp) for w in warp), \
             "param 'warp' must be 'selectionTools.Warp' or a 'tuple' of 'selectionTools.Warp' or" \
             "'None' for default 'selectionTools.Warp.improved()'"
-        warp = NTuple(*warp)
+        warp = NTuple(warp)
         return warp
 
     @staticmethod

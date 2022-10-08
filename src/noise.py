@@ -1,7 +1,6 @@
 import numpy as np
 
 from .nPerlin import NPerlin
-from .tools import RefND
 
 
 class Noise(NPerlin):
@@ -12,7 +11,7 @@ class Noise(NPerlin):
     def setOctaves(self, val):
         self.__octaves = self.__getOctaves(val)
         self.__hmax, self.__weight = self.__calcHMaxWeight()
-        self.setFWM(self.__octaves)
+        self.fwm = self.__octaves
 
     @property
     def persistence(self):
@@ -62,18 +61,17 @@ class Noise(NPerlin):
         :return:
         """
         if len(coords) == 0: coords = (0,)
-        if not isinstance(RefND, np.ndarray): coords = np.array(coords, dtype=np.float32)
 
         fCoords = self.formatCoords([np.ravel(coo) for coo in coords]) * self.__lacunarity ** (self.__octaves - 1)
         bIndex, bCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
-        bSpace = fab[tuple(bIndex)]
+        bSpace = fab[tuple(bIndex - bIndex.min((1, 2))[:, None, None])]
 
         h = self.bNoise(bSpace.T, bCoords.T) * self.__weight[0]
         for i in range(1, self.__octaves):
             fCoords = self.formatCoords(fCoords / self.__lacunarity)
             bIndex, bCoords = self.findBounds(fCoords)
-            bSpace = fab[tuple(bIndex)]
+            bSpace = fab[tuple(bIndex - bIndex.min((1, 2))[:, None, None])]
             h += self.bNoise(bSpace.T, bCoords.T) * self.__weight[i]
         return self.applyRange(h)
 
