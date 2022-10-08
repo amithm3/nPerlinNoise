@@ -24,6 +24,10 @@ class Warp:
         return self.__foo(a)
 
     @staticmethod
+    def improved():
+        return Warp(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}), "Improved")
+
+    @staticmethod
     def lerp():
         return Warp(lambda a: ne.evaluate("a", local_dict={'a': a}), "lerp")
 
@@ -35,10 +39,6 @@ class Warp:
     def cubic(): return Warp(lambda a: ne.evaluate("a * a * a", local_dict={'a': a}), "Cubic")
 
     @staticmethod
-    def improved():
-        return Warp(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}), "Improved")
-
-    @staticmethod
     def cosine(): return Warp(
         lambda a: ne.evaluate("(1 - cos(pi*a)) / 2", local_dict={'a': a, 'pi': np.float32(np.pi)}), "Cosine")
 
@@ -47,10 +47,8 @@ class Warp:
         return Warp(lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a}), "Step")
 
     @staticmethod
-    def polynomial(n):
-        def poly(): return Warp(lambda a, nn=n: ne.evaluate("a ** nn", local_dict={'a': a, 'nn': nn}), f"Poly{n}")
-
-        return poly
+    def polynomial(n: float):
+        return Warp(lambda a: ne.evaluate("a ** n", local_dict={'a': a, 'n': n}), f"Poly{n}")
 
 
 class Gradient:

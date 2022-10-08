@@ -27,3 +27,6 @@ class Gui(tk.Tk):
         self.mainFrame = tk.Frame(self, bg="white smoke")
         # write your ui build here
         self.mainFrame.pack(expand=True, fill="both")
+
+
+Gui().mainloop()

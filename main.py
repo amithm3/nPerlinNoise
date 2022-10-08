@@ -7,17 +7,17 @@ from src import *
 
 def main():
     noise = Noise(
+        seed=None,
         frequency=8,
         waveLength=128,
         warp=Warp.improved(),
-        seed=None,
         _range=(0, 1),
         octaves=8,
-        lacunarity=2,
         persistence=.5,
+        lacunarity=2,
     )
     gradient = Gradient.none()
-    mul, res = 1, 8
+    mul, res = 1, 1
     h, *coordsMesh = perlinGenerator(noise, *[(0, 128 * mul, 128 * res * mul)] * 2, gradient=gradient)
     plot = 1
 
