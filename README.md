@@ -17,6 +17,8 @@
 
 **Screenshots**:
 
+---
+
 ## Dependencies
 Describe any dependencies that must be installed for this software to work.
 This includes programming languages, databases or other storage mechanisms, build tools, frameworks, and so forth.
