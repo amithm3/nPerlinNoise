@@ -3,7 +3,7 @@
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 - A powerful and fast API for n-dimensional noise.
 - Easy hyper-parameters selection of octaves, lacunarity and persistence
-  as well has complex and customizable hyper-parameters for n-dimension
+  as well as complex and customizable hyper-parameters for n-dimension
   frequency, waveLength, warp(interpolation) and range.
 - Includes various helpful tools for noise generation and for procedural generation tasks
   such as customizable Gradient, Warp classes.
