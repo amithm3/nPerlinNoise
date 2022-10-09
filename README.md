@@ -11,7 +11,7 @@
 
 **Details**:
 - **Technology stack**:
-- **Status**: v0.1.0@alpha, in documentation stage [CHANGELOG](CHANGELOG.md).
+- **Status**: [v0.1.0@alpha](https://github.com/Amith225/NPerlinNoise/releases/tag/v0.1.0%40alpha), in documentation and bug fixes stage [CHANGELOG](CHANGELOG.md).
 - **[Links]()**
 - **Additional Description**
 
