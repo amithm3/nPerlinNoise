@@ -1,9 +1,15 @@
+import collections
 from typing import Union
 
 import numpy as np
 
 from .tools import NTuple, NPrng, iterable, maxLen, findCorners
 from .selectionTools import Warp
+
+frequencyHint = Union[int, tuple[int, ...]]
+waveLengthHint = Union[float, tuple[float]]
+warpHint = Union['Warp', tuple['Warp']]
+rangeHint = tuple[float, float]
 
 
 class NPerlin:
@@ -22,7 +28,7 @@ class NPerlin:
     def mFrequency(self) -> "NTuple[int]":
         return self.__frequency * self.fwm
 
-    def setFrequency(self, frequency: Union[int, tuple[int, ...]]):
+    def setFrequency(self, frequency: frequencyHint):
         self.__frequency = self.__getFrequency(frequency)
 
     @property
@@ -33,24 +39,24 @@ class NPerlin:
     def mWaveLength(self) -> "NTuple[float]":
         return self.__waveLength * self.fwm
 
-    def setWaveLength(self, waveLength: Union[float, tuple[float]]):
+    def setWaveLength(self, waveLength: waveLengthHint):
         self.__waveLength = self.__getWaveLength(waveLength)
 
     @property
     def warp(self) -> "NTuple[Warp]":
         return self.__warp
 
-    def setWarp(self, warp: Union['Warp', tuple['Warp']]):
+    def setWarp(self, warp: warpHint):
         self.__warp = self.__getWarp(warp)
 
     @property
     def range(self) -> tuple[float, float]:
         return self.__range
 
-    def setRange(self, _range: tuple[float, float]):
+    def setRange(self, _range: rangeHint):
         self.__range, self.__rangeMul = self.__getRange(_range)
 
-    def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None):
+    def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None) -> "np.ndarray":
         return self.__prng.shaped(shape, off)
 
     @property
@@ -58,38 +64,40 @@ class NPerlin:
         return NTuple(w / f for w, f in zip(self.mWaveLength, self.mFrequency))
 
     def __repr__(self):
-        return f"<seed:{self.seed} freq:{self.frequency} wLen:{self.waveLength} warp:{self.warp} range:{self.range} " \
-               f"fwm{self.fwm}>"
+        return f"<seed={self.seed} freq={self.frequency} wLen={self.waveLength} warp={self.warp} range={self.range}" \
+               f" fwm={self.fwm}>"
 
     def __init__(self,
                  seed: int = None,
-                 frequency: Union[int, tuple[int, ...]] = None,
-                 waveLength: Union[float, tuple[float]] = None,
-                 warp: Union['Warp', tuple['Warp']] = None,
-                 _range: tuple[float, float] = None,
+                 frequency: frequencyHint = 8,
+                 waveLength: waveLengthHint = 128,
+                 warp: warpHint = None,
+                 _range: rangeHint = None,
                  *,
                  fwm: int = 1):
         """
-        :param seed: seed for random values, default random value
+        :param seed: seed for prng values, default random value
         :param frequency: number of random values in one unit respect to dimension, default 8
         :param waveLength: length of one unit respect to dimension, default 128
         :param warp: the interpolation function used between random value nodes, default selectionTools.Warp.improved()
         :param _range: bound for noise values, output will be within the give range, default (0, 1)
+        :param fwm: key word only - frequency, waveLength multiplier
         """
-        if frequency is None: frequency = 8
-        if waveLength is None: waveLength = 128
         if warp is None: warp = Warp.improved()
         if _range is None: _range = (0, 1)
 
-        self.fwm = fwm
+        assert isinstance(fwm, int) and fwm > 0, \
+            "kew word only param fwm must be 'int' > 0"
+
+        self.__prng = NPrng(seed)  # matrix generator of random value nodes
         self.__frequency = self.__getFrequency(frequency)
         self.__waveLength = self.__getWaveLength(waveLength)
-        self.__prng = NPrng(seed)  # matrix of random value nodes
         self.__warp = self.__getWarp(warp)
-        self.__range, self.__rangeMul = self.__getRange(_range)
+        self.__range = self.__getRange(_range)
+        self.fwm = fwm
 
     # todo: implement checkFormat
-    def __call__(self, *coords, checkFormat: bool = True):
+    def __call__(self, *coords: "collections.Iterable", checkFormat: bool = True):
         if len(coords) == 0: coords = (0,)
         fCoords = self.formatCoords([np.ravel(coo) for coo in coords])
         bIndex, bCoords = self.findBounds(fCoords)
@@ -112,7 +120,7 @@ class NPerlin:
 
     # bottleneck: takes a lot of time for higher dims
     def findBounds(self, fCoords):
-        bCoords = fCoords[::-1] / [[a] for a in self.amp[:len(fCoords)]]  # unitized coords
+        bCoords = (fCoords[::-1] / [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
         bCoords -= lowerIndex  # relative unitized coords [0, 1]
         # bounding box indexes for the coords
@@ -122,13 +130,14 @@ class NPerlin:
 
     def findFab(self, bIndex: "np.ndarray"):
         bFab = bIndex.min((1, 2)), bIndex.max((1, 2))  # noqa
-        return self.__prng.shaped((bFab[1] - bFab[0]) + 1, bFab[0])
+        return self.__prng.shaped((bFab[1] - bFab[0]) + 1, bFab[0], dtype=np.float32)
 
     def applyRange(self, noise):
-        return noise * self.__rangeMul + self.range[0]
+        return noise * (self.range[1] - self.range[0]) + self.range[0]
 
     @staticmethod
     def formatCoords(coords: list) -> "np.ndarray":
+        # todo: rethink format
         """
         handles fancy lengths, safety of coords, proper formatting
         todo: docs
@@ -183,5 +192,4 @@ class NPerlin:
     def __getRange(_range):
         assert len(_range) == 2 and isinstance(_range[0], (int, float)) and isinstance(_range[1], (int, float)), \
             "param '_range' must be a tuple of two 'float'('int')"
-        _rangeMul = _range[1] - _range[0]
-        return _range, _rangeMul
+        return _range

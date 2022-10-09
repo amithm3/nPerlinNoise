@@ -1,5 +1,4 @@
 import numpy as np
-# from matplotlib import pyplot
 from src import *
 
 mul, res = 1, 8
@@ -12,11 +11,5 @@ def getH():
     return n(*mesh).reshape(x * res, y * res)
 
 
-h = getH()
-try:
-    print(h)
-    fig, ax = pyplot.subplots()
-    ax.imshow(h, cmap="gray")
-    pyplot.show()
-except NameError:
-    pass
+if __name__ == '__main__':
+    h = getH()

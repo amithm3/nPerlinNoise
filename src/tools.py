@@ -52,14 +52,19 @@ def rand3(X, Y, z):
 class NPrng:
     __m = np.uint32(2 ** 32 - 1)
 
+    @classmethod
+    @property
+    def m(cls):
+        return int(cls.__m)
+
     def __init__(self, seed: int = None):
         self.seed(seed)
         self.__seed = np.int64(seed)
 
-    def __call__(self, *ns):
+    def __call__(self, *ns, dtype=None):
         seed = self.__seed
         for i, n in enumerate(ns): seed = rand3(np.uint32(n), np.uint32(seed), np.uint32(i))
-        return seed / self.__m
+        return (np.uint32(seed) / self.__m).astype(dtype)
 
     def seed(self, seed: int = None) -> int:
         if seed is not None:
@@ -68,11 +73,11 @@ class NPrng:
             self.__seed = seed
         return self.__seed
 
-    def shaped(self, shape, off=None):
+    def shaped(self, shape: tuple[int, ...], off: tuple[int, ...] = None, dtype=None):
         if off is None: off = (0,) * len(shape)
         mesh = [m.ravel() for m in
                 np.meshgrid(*[np.arange(o, s + o) for s, o in zip(shape, off)], indexing="ij")[::-1]]  # noqa
-        return self(*mesh).reshape(shape)
+        return self(*mesh, dtype=dtype).reshape(shape)
 
 
 class NTuple(tuple):
