@@ -66,7 +66,7 @@ class Gradient:
     def woodSpread(n=1) -> "Gradient":
         return Gradient(lambda a, *cm: (np.sin(a * n * np.sqrt(np.sum(np.square(
             cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
-                        "Wood")
+                        "WoodSpread")
 
     @staticmethod
     def wood(n=1, m=16) -> "Gradient":
@@ -84,10 +84,27 @@ class Gradient:
 
     @staticmethod
     def terrace(n=8) -> "Gradient":
-        def gradient(a):
-            return np.int8(n * a) / n
+        return Gradient(lambda a, *_: np.int8(n * a) / n, "Terrace")
 
-        return Gradient(lambda a, *_: gradient(a), "Ply")
+    @staticmethod
+    def terraceSmooth(n=8) -> "Gradient":
+        def gradient(a):
+            for i in range(1, n+1):
+                a = np.where(a > i / n * a.max(), a, a - a / i)
+            return a
+
+        return Gradient(lambda a, *_: gradient(a), "TerraceSmooth")
+
+    @staticmethod
+    def island(n=16) -> "Gradient":
+        scope = Gradient.scope()
+
+        def gradient(a):
+            for i in range(1, n + 1):
+                a = np.where(a > i / n * a.max(), a + a / i / 3, a)
+            return a
+
+        return Gradient(lambda a, *cm: gradient(scope(a, *cm)), "Island")
 
     @staticmethod
     def marbleFractal(n=0.5) -> "Gradient":

@@ -1,4 +1,7 @@
 import collections
+from typing import Union
+
+import numpy as np
 
 from .nPerlin import NPerlin
 
@@ -10,7 +13,6 @@ class Noise(NPerlin):
 
     def setOctaves(self, octaves: int):
         self.__octaves = self.__getOctaves(octaves)
-        self.__hmax, self.__weight = self.__calcHMaxWeight()
         self.fwm = self.__octaves
 
     @property
@@ -19,7 +21,6 @@ class Noise(NPerlin):
 
     def setPersistence(self, persistence: float):
         self.__persistence = self.__getPersistence(persistence)
-        self.__hmax, self.__weight = self.__calcHMaxWeight()
 
     @property
     def lacunarity(self) -> float:
@@ -31,6 +32,12 @@ class Noise(NPerlin):
     def __repr__(self):
         return super(Noise, self).__repr__()[:-1] + \
                f' oct={self.octaves} per={self.persistence} lac={self.lacunarity}>'
+
+    @property
+    def weight(self):
+        hmax = \
+            (1 - self.persistence ** self.octaves) / (1 - self.persistence) if self.persistence != 1 else self.octaves
+        return [self.persistence ** i / hmax for i in range(self.octaves)]
 
     def __init__(self, *args,
                  octaves: int = 8,  # todo: diff octaves for diff dims
@@ -46,36 +53,18 @@ class Noise(NPerlin):
         self.__octaves = self.__getOctaves(octaves)
         self.__persistence = self.__getPersistence(persistence)
         self.__lacunarity = self.__getLacunarity(lacunarity)
-        # todo: explain hMax, weight
-        self.__hmax, self.__weight = self.__calcHMaxWeight()
         super(Noise, self).__init__(*args, **kwargs, fwm=self.__octaves)
 
-    def __call__(self, *coords: "collections.Iterable", _format: str = "fill" or "expand" or "none"):
-        """
-        todo: documentation required
-        :param coords:
-        :param checkFormat:
-        :return:
-        """
-        fCoords, shape = self.formatCoords(coords, _format)
-        fCoords *= self.__lacunarity ** (self.__octaves - 1)
-        bIndex, bCoords = self.findBounds(fCoords)
+    def __call__(self, *coords: Union["collections.Iterable", float]) -> "np.ndarray":
+        fCoords, shape = self.formatCoords(coords)
+        fCoords = np.concatenate([fCoords] + [fCoords := fCoords * self.__lacunarity for _ in range(1, self.__octaves)],
+                                 axis=1)
+        bIndex, rCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
-        bSpace = fab[tuple(bIndex - bIndex.min((1, 2))[:, None, None])]
-
-        h = self.bNoise(bSpace.T, bCoords.T) * self.__weight[0]
-        for i in range(1, self.__octaves):
-            fCoords /= self.__lacunarity
-            bIndex, bCoords = self.findBounds(fCoords)
-            bSpace = fab[tuple(bIndex - bIndex.min((1, 2))[:, None, None])]
-            h += self.bNoise(bSpace.T, bCoords.T) * self.__weight[i]
-        return self.applyRange(h).reshape(shape)
-
-    def __calcHMaxWeight(self):
-        hmax = (1 - self.__persistence ** self.__octaves) / (1 - self.__persistence) if self.__persistence != 1 \
-            else self.__octaves
-        weight = [self.__persistence ** i / hmax for i in range(self.__octaves)][::-1]
-        return hmax, weight
+        bSpace = fab[tuple(bIndex - bIndex.min((1, 2), keepdims=True))]
+        h = self.bNoise(bSpace.T, rCoords.T).reshape(self.__octaves, -1)
+        h *= [[w] for w in self.weight]
+        return h.sum(axis=0).reshape(shape)
 
     @staticmethod
     def __getOctaves(octaves):

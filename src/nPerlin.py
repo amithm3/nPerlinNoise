@@ -60,12 +60,12 @@ class NPerlin:
     def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None) -> "np.ndarray":
         return self.__prng.shaped(shape, off)
 
-    # multiplier for converting coords into fabric region based on frequency and wavelength
+    # multiplier for converting coords into fabric index region based on frequency and wavelength
     @property
     def amp(self) -> "NTuple[float]":
         mF, mW = self.mFrequency, self.mWaveLength
         length = max(len(mF), len(mW))
-        return NTuple(f / w for f, w in zip(mF[:length], mW[:length]))
+        return NTuple((f - 1) / w for f, w in zip(mF[:length], mW[:length]))
 
     def __repr__(self):
         return f"<seed={self.seed} freq={self.frequency} wLen={self.waveLength} warp={self.warp} range={self.range}" \
@@ -100,22 +100,21 @@ class NPerlin:
         self.__range = self.__getRange(_range)
         self.fwm = fwm
 
-    # todo: implement checkFormat
-    def __call__(self, *coords: "collections.Iterable", _format: str = "fill" or "expand" or "none"):
-        fCoords, shape = self.formatCoords(coords, _format)
-        bIndex, bCoords = self.findBounds(fCoords)
+    def __call__(self, *coords: Union["collections.Iterable", float]) -> "np.ndarray":
+        fCoords, shape = self.formatCoords(coords)
+        bIndex, rCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
-        bSpace = fab[tuple(bIndex)]
-        return self.applyRange(self.bNoise(bSpace.T, bCoords.T)).reshape(shape)
+        bSpace = fab[tuple(bIndex - bIndex.min((1, 2), keepdims=True))]
+        return self.applyRange(self.bNoise(bSpace.T, rCoords.T)).reshape(shape)
 
-    def bNoise(self, bSpace, bCoords):
-        dims = bCoords.shape[1]
+    def bNoise(self, bSpace, rCoords):
+        dims = rCoords.shape[1]
         pairs = bSpace.reshape(-1, 2)
         # collapse dimensions
-        for d in range(dims - 1):
-            coords = bCoords[:, d].repeat(2 ** (dims - 1 - d))
+        for d in range(dims - 1, 0, -1):
+            coords = rCoords[:, d].repeat(2 ** d)
             pairs = self.__interpolation(pairs, coords, d).reshape(-1, 2)
-        return self.__interpolation(pairs, bCoords[:, -1], -1)
+        return self.__interpolation(pairs, rCoords[:, 0], 0)
 
     def __interpolation(self, pairs, coords, d):
         heightStretch = pairs[:, 1] - pairs[:, 0]
@@ -123,13 +122,13 @@ class NPerlin:
 
     # bottleneck: takes a lot of time for higher dims
     def findBounds(self, fCoords):
-        bCoords = (fCoords[::-1] * [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
+        bCoords = (fCoords * [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
-        bCoords -= lowerIndex  # relative unitized coords [0, 1]
+        rCoords = bCoords - lowerIndex  # relative unitized coords [0, 1]
         # bounding box indexes for the coords
         bIndex = (lowerIndex + np.array(findCorners(len(bCoords)))[..., None]).transpose((1, 0, 2))
         bIndex %= [[[f]] for f in self.mFrequency[:len(bIndex)]]  # wrapping indices under the valid range
-        return bIndex, bCoords[::-1]
+        return bIndex[::-1], rCoords
 
     def findFab(self, bIndex: "np.ndarray"):
         bFab = bIndex.min((1, 2)), bIndex.max((1, 2))  # noqa
@@ -139,35 +138,11 @@ class NPerlin:
         return noise * (self.range[1] - self.range[0]) + self.range[0]
 
     @staticmethod
-    def formatCoords(coords, _format: str = "fill" or "expand" or "none") -> tuple["np.ndarray", tuple[int, ...]]:
-        """
-        todo: docs
-        :param coords:
-        :param _format:
-        :return:
-        """
-        # the highest length amongst the elements of coords
-        maxLength = maxLen(coords, key=lambda x: x if iterable(x) else (x,))
-        if _format == "fill":
-            # pre-allocation of required array
-            __coords = np.zeros((len(coords), maxLength), dtype=np.float32)
-            for d in range(len(coords)):
-                if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
-                stretch, left = divmod(maxLength, max(1, len(coords[d])))
-                __coords[d, :maxLength - left], __coords[d, maxLength - left:] = \
-                    np.repeat(coords[d], stretch), np.repeat(coords[d][-1], left)
-            coords = __coords
-        elif _format == "expand":
-            for d in range(len(coords)):
-                if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
-            __coords = (coords := np.array(np.meshgrid(*coords), dtype=np.float32)).reshape(len(coords), -1)
-        elif _format == "none":
-            __coords = (coords := np.array(coords, dtype=np.float32)).reshape(len(coords), -1)
-        else:
-            raise ValueError(f"param _format can be 'fill' or 'expand' or 'none', not {_format}")
-        assert (depth := len(__coords.shape)) == 2, \
-            f"coords must be a 2D Matrix of nth row representing nth dimension, but given Matrix of depth {depth}"
-        return __coords.__abs__(), coords.shape[1:]
+    def formatCoords(coords: tuple) -> tuple["np.ndarray[np.float32]", tuple[int]]:
+        coords = np.array(coords, dtype=np.float32)
+        shape = coords.shape
+        coords = coords.reshape(len(coords), -1)
+        return coords.__abs__(), shape[1:]
 
     @staticmethod
     def __getFrequency(frequency):

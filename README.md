@@ -16,18 +16,40 @@
 - **Additional Description**
 
 **Screenshots**:
+- raw
+  - ![raw](snaps/raw.png)
+- wood
+  - ![wood](snaps/wood.png)
+- hot nebula
+  - ![hot nebula](snaps/hot nebula.png)
+- island
+  - ![island](snaps/island.png)
+- island zoom
+  - ![island zoom](snaps/island zoom.png)
+- land
+  - ![land](snaps/land.png)
+- marble fractal
+  - ![marble fractal](snaps/marble fractal.png)
+- patch
+  - ![patch](snaps/patch.png)
+- ply1
+  - ![ply1](snaps/ply1.png)
+- ply2
+  - ![ply2](snaps/ply2.png)
+- stripes
+  - ![stripes](snaps/stripes.png)
+- warp
+  - ![warp](snaps/warp.png)
+
 
 ---
 
 ## Dependencies
-Describe any dependencies that must be installed for this software to work.
-This includes programming languages, databases or other storage mechanisms, build tools, frameworks, and so forth.
-If specific versions of other software are required, or known not to work, call that out.
+- Python~=3.10.0
+- [Requirements](requirements.txt)
 
 ## Installation
-Detailed instructions on how to install, configure, and get the project running.
-This should be frequently tested to ensure reliability. Alternatively, link to
-a separate [INSTALLATION](docs/INSTALL.md) document.
+- [INSTALLATION](docs/INSTALL.md) document.
 
 ## Usage
 Show users how to use the software.

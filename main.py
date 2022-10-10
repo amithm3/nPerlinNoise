@@ -1,6 +1,7 @@
 # import plotly.graph_objects as go
 # from plotly.offline import offline
-from matplotlib import pyplot
+from matplotlib import pyplot, colors
+import numpy as np
 
 from src import *
 
@@ -17,8 +18,8 @@ def main():
         lacunarity=2,
     )
     gradient = Gradient.none()
-    mul, res = 1, 1
-    h, *coordsMesh = perlinGenerator(noise, *[(0, 128 * mul, 128 * res * mul)] * 2, gradient=gradient)
+    mul, res = 1, 2
+    h, *coordsMesh = perlinGenerator(noise, *[(0, 128 * mul, 128 * res * mul)] * 2 + [(0, 128, 3)], gradient=gradient)
     plot = 1
 
     # cmap_pil = pyplot.get_cmap('Blues')
@@ -28,8 +29,17 @@ def main():
     if plot == 1:
         # -----Matplotlib-----
         fig, ax = pyplot.subplots()
-        ax.imshow(h * 255, cmap='gray')
+        h *= 255
+        ax.imshow(h.T.astype(np.uint8))
         pyplot.show()
+
+    # island
+    # h *= 255
+    # ax.imshow(np.where(h < 25, h / 3, np.where(h < 45, h / 1.5, h)),
+    #           cmap=colors.LinearSegmentedColormap.from_list(
+    #               "", ["#006994", "#f6d7b0", "#4d8204", "#4d8204", "#977c53", "#977c53", "white"]
+    #           ))
+
     # elif plot == 2:
     #     # -----plotly-----
     #     marker_data = go.Surface(x=coordsMesh[0], y=coordsMesh[1], z=h)
