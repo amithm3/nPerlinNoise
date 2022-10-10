@@ -11,7 +11,7 @@
 
 **Details**:
 - **Technology stack**:
-- **Status**: [v0.1.0@alpha](https://github.com/Amith225/NPerlinNoise/releases/tag/v0.1.0%40alpha), in documentation and bug fixes stage [CHANGELOG](CHANGELOG.md).
+- **Status**: [v0.1.0@alpha](https://github.com/Amith225/NPerlinNoise/releases/tag/v0.1.0%40alpha), in documentation and bug fixes stage [CHANGELOG](docs/CHANGELOG.md).
 - **[Links]()**
 - **Additional Description**
 
@@ -27,7 +27,7 @@ If specific versions of other software are required, or known not to work, call 
 ## Installation
 Detailed instructions on how to install, configure, and get the project running.
 This should be frequently tested to ensure reliability. Alternatively, link to
-a separate [INSTALLATION](INSTALL.md) document.
+a separate [INSTALLATION](docs/INSTALL.md) document.
 
 ## Usage
 Show users how to use the software.
@@ -51,12 +51,12 @@ This section should detail why people should get involved and describe key areas
 currently focusing on; e.g., trying to get feedback on features, fixing certain bugs, building
 important pieces, etc.
 
-General instructions on _how_ to contribute should be stated with a link to [CONTRIBUTING](CONTRIBUTING.md).
+General instructions on _how_ to contribute should be stated with a link to [CONTRIBUTING](docs/CONTRIBUTING.md).
 
 ----
 
 ## Open source licensing info
-1. [TERMS](TERMS.md)
+1. [TERMS](docs/TERMS.md)
 2. [LICENSE](LICENSE)
 3. [CFPB Source Code Policy](https://github.com/cfpb/source-code-policy/)
 

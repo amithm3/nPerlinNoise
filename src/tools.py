@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 
@@ -52,14 +54,13 @@ def rand3(X, Y, z):
 class NPrng:
     __m = np.uint32(2 ** 32 - 1)
 
-    @classmethod
     @property
-    def m(cls):
-        return int(cls.__m)
+    def m(self):
+        return int(self.__m)
 
     def __init__(self, seed: int = None):
+        self.__seed = random.randint(0, self.__m)
         self.seed(seed)
-        self.__seed = np.int64(seed)
 
     def __call__(self, *ns, dtype=None):
         seed = self.__seed

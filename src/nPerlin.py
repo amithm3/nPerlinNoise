@@ -54,14 +54,18 @@ class NPerlin:
         return self.__range
 
     def setRange(self, _range: rangeHint):
-        self.__range, self.__rangeMul = self.__getRange(_range)
+        self.__range = self.__getRange(_range)
 
+    # matrix of desired shape and offset
     def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None) -> "np.ndarray":
         return self.__prng.shaped(shape, off)
 
+    # multiplier for converting coords into fabric region based on frequency and wavelength
     @property
-    def amp(self) -> "NTuple[float]":  # length between any 2 consecutive random values
-        return NTuple(w / f for w, f in zip(self.mWaveLength, self.mFrequency))
+    def amp(self) -> "NTuple[float]":
+        mF, mW = self.mFrequency, self.mWaveLength
+        length = max(len(mF), len(mW))
+        return NTuple(f / w for f, w in zip(mF[:length], mW[:length]))
 
     def __repr__(self):
         return f"<seed={self.seed} freq={self.frequency} wLen={self.waveLength} warp={self.warp} range={self.range}" \
@@ -97,13 +101,12 @@ class NPerlin:
         self.fwm = fwm
 
     # todo: implement checkFormat
-    def __call__(self, *coords: "collections.Iterable", checkFormat: bool = True):
-        if len(coords) == 0: coords = (0,)
-        fCoords = self.formatCoords([np.ravel(coo) for coo in coords])
+    def __call__(self, *coords: "collections.Iterable", _format: str = "fill" or "expand" or "none"):
+        fCoords, shape = self.formatCoords(coords, _format)
         bIndex, bCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
         bSpace = fab[tuple(bIndex)]
-        return self.applyRange(self.bNoise(bSpace.T, bCoords.T))
+        return self.applyRange(self.bNoise(bSpace.T, bCoords.T)).reshape(shape)
 
     def bNoise(self, bSpace, bCoords):
         dims = bCoords.shape[1]
@@ -120,7 +123,7 @@ class NPerlin:
 
     # bottleneck: takes a lot of time for higher dims
     def findBounds(self, fCoords):
-        bCoords = (fCoords[::-1] / [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
+        bCoords = (fCoords[::-1] * [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
         bCoords -= lowerIndex  # relative unitized coords [0, 1]
         # bounding box indexes for the coords
@@ -136,32 +139,35 @@ class NPerlin:
         return noise * (self.range[1] - self.range[0]) + self.range[0]
 
     @staticmethod
-    def formatCoords(coords: list) -> "np.ndarray":
-        # todo: rethink format
+    def formatCoords(coords, _format: str = "fill" or "expand" or "none") -> tuple["np.ndarray", tuple[int, ...]]:
         """
-        handles fancy lengths, safety of coords, proper formatting
         todo: docs
         :param coords:
+        :param _format:
         :return:
         """
         # the highest length amongst the elements of coords
         maxLength = maxLen(coords, key=lambda x: x if iterable(x) else (x,))
-        coords = list(coords)
-        # pre-allocation of required array
-        __coords = np.zeros((len(coords), maxLength), dtype=np.float32)
-        for d in range(len(coords)):
-            if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
-            stretch, left = divmod(maxLength, max(1, len(coords[d])))
-            """
-            to make all the elements of coords of equal(=maxLength) length
-            stretch: each sub-element will be repeated 'stretch' times
-            left: last element will be repeated 'left' times to fill the remaining gap
-            """
-            __coords[d, :maxLength - left] = np.repeat(coords[d], stretch)
-            __coords[d, maxLength - left:] = np.repeat(coords[d][-1], left)
+        if _format == "fill":
+            # pre-allocation of required array
+            __coords = np.zeros((len(coords), maxLength), dtype=np.float32)
+            for d in range(len(coords)):
+                if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
+                stretch, left = divmod(maxLength, max(1, len(coords[d])))
+                __coords[d, :maxLength - left], __coords[d, maxLength - left:] = \
+                    np.repeat(coords[d], stretch), np.repeat(coords[d][-1], left)
+            coords = __coords
+        elif _format == "expand":
+            for d in range(len(coords)):
+                if not iterable(coords[d]): coords[d] = [coords[d]]  # convert non-iterable to iterable of length 1
+            __coords = (coords := np.array(np.meshgrid(*coords), dtype=np.float32)).reshape(len(coords), -1)
+        elif _format == "none":
+            __coords = (coords := np.array(coords, dtype=np.float32)).reshape(len(coords), -1)
+        else:
+            raise ValueError(f"param _format can be 'fill' or 'expand' or 'none', not {_format}")
         assert (depth := len(__coords.shape)) == 2, \
             f"coords must be a 2D Matrix of nth row representing nth dimension, but given Matrix of depth {depth}"
-        return __coords.__abs__()
+        return __coords.__abs__(), coords.shape[1:]
 
     @staticmethod
     def __getFrequency(frequency):
