@@ -21,15 +21,15 @@
 - wood
   - ![wood](snaps/wood.png)
 - hot nebula
-  - ![hot nebula](snaps/hot nebula.png)
+  - ![hot nebula](snaps/hot_nebula.png)
 - island
   - ![island](snaps/island.png)
 - island zoom
-  - ![island zoom](snaps/island zoom.png)
+  - ![island zoom](snaps/island_zoom.png)
 - land
   - ![land](snaps/land.png)
 - marble fractal
-  - ![marble fractal](snaps/marble fractal.png)
+  - ![marble fractal](snaps/marble_fractal.png)
 - patch
   - ![patch](snaps/patch.png)
 - ply1
