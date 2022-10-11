@@ -2,6 +2,8 @@ from typing import Callable
 
 import numpy as np
 
+from .tools import iterable, NTuple
+
 try:
     import numexpr as ne
 except ImportError:
@@ -89,15 +91,15 @@ class Gradient:
     @staticmethod
     def terraceSmooth(n=8) -> "Gradient":
         def gradient(a):
-            for i in range(1, n+1):
+            for i in range(1, n + 1):
                 a = np.where(a > i / n * a.max(), a, a - a / i)
             return a
 
         return Gradient(lambda a, *_: gradient(a), "TerraceSmooth")
 
     @staticmethod
-    def island(n=16) -> "Gradient":
-        scope = Gradient.scope()
+    def island(n=16, m=1) -> "Gradient":
+        scope = Gradient.scope(m)
 
         def gradient(a):
             for i in range(1, n + 1):
@@ -120,8 +122,10 @@ class Gradient:
 
     @staticmethod
     def scope(m=1) -> "Gradient":
+        if not iterable(m): m = NTuple((m,))
+
         def gradient(a, cm):
-            cm = [(c - c.max() / 2) / c.max() * 2 * m for c in cm]
+            cm = [(c - c.max() / 2) / c.max() * 2 * m[i] for i, c in enumerate(cm)]
             return a * np.where((b := np.sum(np.square(cm), axis=0) ** .5) > 1, 0, 1 - b)
 
         return Gradient(lambda a, *cm: gradient(a, cm), "Scope")
@@ -129,3 +133,28 @@ class Gradient:
     @staticmethod
     def none() -> "Gradient":
         return Gradient(lambda a, *_: a, "None")
+
+
+def linearColorGradient(*cols: str):
+    cols = list(cols)
+    for i, col in enumerate(cols):
+        col = col[1:]
+        assert (length := len(col)) in (3, 6, 9), \
+            f"invalid color {col}"
+        length //= 3
+        col = [int('0x' + col[ch * length:ch * length + length] * (3 - length), 0) for ch in range(3)]
+        cols[i] = col
+    cols = np.array(cols + [cols[0]], dtype=np.int16)
+
+    def gradient(a, off: float = 0):
+        a = np.array(a)
+        _range = [a.min(d := tuple(range(a.ndim))), a.max(d)]
+        if off > 0: _range[0] -= (_range[1] - _range[0]) * off
+        elif off < 0: _range[1] -= (_range[1] - _range[0]) * off
+        a = (a - _range[0]) / (_range[1] - _range[0]) * (len(cols) - 2)
+        a_i = np.floor(a).astype(np.uint8)
+        a -= a_i
+        _range = cols[a_i], cols[a_i + 1]
+        return (a[..., None] * (_range[1] - _range[0] + 1) + _range[0]).astype(np.uint8)
+
+    return gradient

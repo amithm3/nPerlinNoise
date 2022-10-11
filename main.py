@@ -17,9 +17,10 @@ def main():
         persistence=.5,
         lacunarity=2,
     )
-    gradient = Gradient.none()
-    mul, res = 1, 2
-    h, *coordsMesh = perlinGenerator(noise, *[(0, 128 * mul, 128 * res * mul)] * 2 + [(0, 128, 3)], gradient=gradient)
+    gradient = Gradient.scope(), Gradient.terraceSmooth()
+    mul, res = 1, 4
+    h, *coordsMesh = perlinGenerator(noise, *[(0, 128 * mul, 128 * res * mul)] * 2, gradient=gradient)
+    # h = linearColorGradient("#4d8204", "#006994")(h)
     plot = 1
 
     # cmap_pil = pyplot.get_cmap('Blues')
@@ -30,7 +31,7 @@ def main():
         # -----Matplotlib-----
         fig, ax = pyplot.subplots()
         h *= 255
-        ax.imshow(h.T.astype(np.uint8))
+        ax.imshow(h.astype(np.uint8), cmap="gray")
         pyplot.show()
 
     # island

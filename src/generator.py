@@ -15,7 +15,7 @@ def meshgrid(*ls):
     a = np.mgrid[tuple(slice(*(sl[0],
                                sl[1] + (step := (sl[1] - sl[0]) / ((sl[2] if len(sl) == 3 else sl[1] - sl[0]) - 1)),
                                step)) for sl in ls)]
-    return a.transpose(0, *range(1, a.ndim)[::-1])
+    return a.transpose(0, *range(1, a.ndim))
 
 
 def perlinGenerator(noise: 'NPerlin',
