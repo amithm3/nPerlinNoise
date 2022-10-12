@@ -18,8 +18,8 @@ def meshgrid(*ls):
     return a.transpose(0, *range(1, a.ndim))
 
 
-def perlinGenerator(noise: 'NPerlin',
-                    *lineSpace: tuple[float, float, float],
+def perlinGenerator(noise: "NPerlin",
+                    *lineSpace: Union[tuple[float, float, float], tuple[float, float]],
                     gradient: Union[tuple["Gradient", ...], "Gradient"] = None):
     assert all([len(sl) in (2, 3) for sl in lineSpace]), \
         "*lineSpace must be 'tuple' of float as (start, stop) or (start, stop, resolution)"

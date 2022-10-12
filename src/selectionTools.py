@@ -61,44 +61,44 @@ class Gradient:
         self.__name = _name
         self.__foo = foo
 
-    def __call__(self, a, *_coordsShape):
-        return self.__foo(a, *_coordsShape)
+    def __call__(self, a, *coordsMesh):
+        return self.__foo(a, *coordsMesh)
 
-    @staticmethod
-    def woodSpread(n=1) -> "Gradient":
-        return Gradient(lambda a, *cm: (np.sin(a * n * np.sqrt(np.sum(np.square(
+    @classmethod
+    def woodSpread(cls, n=1) -> "Gradient":
+        return cls(lambda a, *cm: (np.sin(a * n * np.sqrt(np.sum(np.square(
             cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
-                        "WoodSpread")
+                   "WoodSpread")
 
-    @staticmethod
-    def wood(n=1, m=16) -> "Gradient":
-        return Gradient(lambda a, *cm: (np.sin(m * a + n * np.sqrt(np.sum(np.square(
+    @classmethod
+    def wood(cls, n=1, m=16) -> "Gradient":
+        return cls(lambda a, *cm: (np.sin(m * a + n * np.sqrt(np.sum(np.square(
             cm - np.max(cm, axis=tuple(i for i in range(1, len(cm) + 1)), keepdims=True) / 2), axis=0))) + 1) / 2,
-                        "Wood")
+                   "Wood")
 
-    @staticmethod
-    def ply(n=8) -> "Gradient":
+    @classmethod
+    def ply(cls, n=8) -> "Gradient":
         def gradient(a):
             a = n * a
             return a - np.floor(a)
 
-        return Gradient(lambda a, *_: gradient(a), "Ply")
+        return cls(lambda a, *_: gradient(a), "Ply")
 
-    @staticmethod
-    def terrace(n=8) -> "Gradient":
-        return Gradient(lambda a, *_: np.int8(n * a) / n, "Terrace")
+    @classmethod
+    def terrace(cls, n=8) -> "Gradient":
+        return cls(lambda a, *_: np.int8(n * a) / n, "Terrace")
 
-    @staticmethod
-    def terraceSmooth(n=8) -> "Gradient":
+    @classmethod
+    def terraceSmooth(cls, n=8) -> "Gradient":
         def gradient(a):
             for i in range(1, n + 1):
                 a = np.where(a > i / n * a.max(), a, a - a / i)
             return a
 
-        return Gradient(lambda a, *_: gradient(a), "TerraceSmooth")
+        return cls(lambda a, *_: gradient(a), "TerraceSmooth")
 
-    @staticmethod
-    def island(n=16, m=1) -> "Gradient":
+    @classmethod
+    def island(cls, n=16, m=1) -> "Gradient":
         scope = Gradient.scope(m)
 
         def gradient(a):
@@ -106,36 +106,36 @@ class Gradient:
                 a = np.where(a > i / n * a.max(), a + a / i / 3, a)
             return a
 
-        return Gradient(lambda a, *cm: gradient(scope(a, *cm)), "Island")
+        return cls(lambda a, *cm: gradient(scope(a, *cm)), "Island")
 
-    @staticmethod
-    def marbleFractal(n=0.5) -> "Gradient":
-        return Gradient(lambda a, *cm: (np.sin(np.sum(cm, axis=0) * a * n) + 1) / 2, "MarbleSpread")
+    @classmethod
+    def marbleFractal(cls, n=0.5) -> "Gradient":
+        return cls(lambda a, *cm: (np.sin(np.sum(cm, axis=0) * a * n) + 1) / 2, "MarbleSpread")
 
-    @staticmethod
-    def marble(n=.5, m=32) -> "Gradient":
-        return Gradient(lambda a, *cm: (np.sin((np.sum(cm, axis=0) + a * m) * n) + 1) / 2, "Marble")
+    @classmethod
+    def marble(cls, n=.5, m=32) -> "Gradient":
+        return cls(lambda a, *cm: (np.sin((np.sum(cm, axis=0) + a * m) * n) + 1) / 2, "Marble")
 
-    @staticmethod
-    def invert() -> "Gradient":
-        return Gradient(lambda a, *_: a.max() - a, "Invert")
+    @classmethod
+    def invert(cls) -> "Gradient":
+        return cls(lambda a, *_: a.max() - a, "Invert")
 
-    @staticmethod
-    def scope(m=1) -> "Gradient":
+    @classmethod
+    def scope(cls, m=1) -> "Gradient":
         if not iterable(m): m = NTuple((m,))
 
         def gradient(a, cm):
             cm = [(c - c.max() / 2) / c.max() * 2 * m[i] for i, c in enumerate(cm)]
             return a * np.where((b := np.sum(np.square(cm), axis=0) ** .5) > 1, 0, 1 - b)
 
-        return Gradient(lambda a, *cm: gradient(a, cm), "Scope")
+        return cls(lambda a, *cm: gradient(a, cm), "Scope")
 
-    @staticmethod
-    def none() -> "Gradient":
-        return Gradient(lambda a, *_: a, "None")
+    @classmethod
+    def none(cls) -> "Gradient":
+        return cls(lambda a, *_: a, "None")
 
 
-def linearColorGradient(*cols: str):
+def hexToRGB(cols) -> "np.ndarray[np.ndarray]":
     cols = list(cols)
     for i, col in enumerate(cols):
         col = col[1:]
@@ -144,17 +144,68 @@ def linearColorGradient(*cols: str):
         length //= 3
         col = [int('0x' + col[ch * length:ch * length + length] * (3 - length), 0) for ch in range(3)]
         cols[i] = col
-    cols = np.array(cols + [cols[0]], dtype=np.int16)
+    return np.array(cols, dtype=np.int16)
 
-    def gradient(a, off: float = 0):
+
+class LinearColorGradient:
+    def __init__(self, *cols: str, grad: str = 'i'):
+        self.cols = hexToRGB(cols)
+        if len(self.cols) == 1: self.cols = np.array([self.cols[0], 255 - self.cols[0]])
+        self.grad = grad
+
+    def sGradient(self, a):
         a = np.array(a)
-        _range = [a.min(d := tuple(range(a.ndim))), a.max(d)]
-        if off > 0: _range[0] -= (_range[1] - _range[0]) * off
-        elif off < 0: _range[1] -= (_range[1] - _range[0]) * off
-        a = (a - _range[0]) / (_range[1] - _range[0]) * (len(cols) - 2)
-        a_i = np.floor(a).astype(np.uint8)
-        a -= a_i
-        _range = cols[a_i], cols[a_i + 1]
-        return (a[..., None] * (_range[1] - _range[0] + 1) + _range[0]).astype(np.uint8)
+        _range = a.min(d := tuple(range(a.ndim))), a.max(d)
+        a = (a - _range[0]) / (_range[1] - _range[0])
+        s = a.flatten()
+        s.sort()
+        length = (len(s) - 1) / (len(self.cols) - 1)
+        x = np.zeros(a.shape + (3,))
+        pCol = self.cols[0]
+        for i, col in enumerate(self.cols[1:]):
+            ind = (s[int(i * length)] <= a) & (a <= s[int((i + 1) * length)])
+            _a = a[ind, None]
+            _range = _a.min(d := tuple(range(_a.ndim))), _a.max(d)
+            _a = (_a - _range[0]) / (_range[1] - _range[0])
+            x[ind] = _a * (col - pCol) + pCol
+            pCol = col
+        return x.astype(np.uint8)
 
-    return gradient
+    def iGradient(self, a):
+        a = np.array(a)
+        _range = a.min(d := tuple(range(a.ndim))), a.max(d)
+        a = (a - _range[0]) / (_range[1] - _range[0]) * (len(self.cols) - 1)
+        a_i = np.ceil(a).astype(np.int16)
+        a -= a_i - 1
+        _range = self.cols[[a_i - 1, a_i]]
+        return (a[..., None] * (_range[1] - _range[0]) + _range[0]).astype(np.uint8)
+
+    def __call__(self, a):
+        if self.grad == 'i':
+            grad = self.iGradient
+        elif self.grad == 's':
+            grad = self.sGradient
+        else:
+            raise ValueError(f"param grad invalid value '{self.grad}'")
+        return grad(a)
+
+    @classmethod
+    def earth(cls, **kwargs):
+        return cls(
+            "#006994",
+            "#006994",
+            "#f6d7b0",
+            "#1F6420",
+            "#4d8204",
+            "#977c53",
+            "#fff",
+            **kwargs
+        )
+
+    @classmethod
+    def none(cls, **kwargs):
+        return cls("#fff", **kwargs)
+
+    @classmethod
+    def sun(cls, **kwargs):
+        return cls("#800909", "#fdcf58", **kwargs)
