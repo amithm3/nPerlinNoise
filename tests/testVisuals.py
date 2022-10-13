@@ -1,6 +1,6 @@
 from matplotlib import pyplot
 
-from test import getH
+from testProfile import getH
 
 h = getH()
 

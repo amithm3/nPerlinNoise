@@ -3,7 +3,7 @@ from typing import Union
 
 import numpy as np
 
-from .tools import NTuple, NPrng, iterable, maxLen, findCorners
+from .tools import NTuple, NPrng, findCorners
 from .selectionTools import Warp
 
 frequencyHint = Union[int, tuple[int, ...]]

@@ -1,5 +1,3 @@
-from matplotlib import pyplot
-
 from src import *
 
 noise = Noise(
@@ -15,22 +13,42 @@ noise = Noise(
 
 
 def main():
+    plot = 1
     mul, res = 1, 4
     colorMap = (
-        "#000",
+        "#00f",
+        "#0f0",
+        "#f00",
     )
-    gradient = Gradient.scope(), Gradient.terrace(32)
-    colorGradient = LinearColorGradient(*colorMap, grad='i')
-    colorGradient = LinearColorGradient.earth(grad='i')
-    h, *coordsMesh = perlinGenerator(noise,
-                                     (0, noise.waveLength[0] * mul, noise.waveLength[0] * res),
-                                     (0, noise.waveLength[1] * mul, noise.waveLength[0] * res),
-                                     gradient=gradient)
-    h = colorGradient(h)
+    gradients = Gradient.none()
+    colorGradient = LinearColorGradient(*colorMap, grad='s').earth(grad='i') or LinearColorGradient.none()
+    h, coordsMesh = perlinGenerator(noise,
+                                    (0, noise.waveLength[0] * mul, noise.waveLength[0] * res),
+                                    (0, noise.waveLength[1] * mul, noise.waveLength[0] * res))
+    g = applyGrads(h, coordsMesh, gradients)
+    c = colorGradient(g)
 
-    fig, ax = pyplot.subplots()
-    ax.imshow(h, cmap="gray")
-    pyplot.show()
+    if plot == 1:
+        from matplotlib import pyplot
+        # ---matplotlib---
+        fig, ax = pyplot.subplots()
+        ax.imshow(c, cmap="gray")
+        pyplot.show()
+    elif plot == 2:
+        import plotly.graph_objects as go
+        from plotly.offline import offline
+        # -----plotly-----
+        marker_data = go.Surface(x=coordsMesh[0], y=coordsMesh[1], z=g)
+        fig = go.Figure(data=marker_data)
+        fig.update_layout(
+            scene=dict(zaxis=dict(nticks=4, range=[0, 2])),
+            width=700,
+            margin=dict(r=20, l=10, b=10, t=10))
+        fig.update_traces(contours_z=dict(
+            show=True, usecolormap=True,
+            highlightcolor='limegreen',
+            project_z=True))
+        offline.plot(fig)
 
 
 if __name__ == '__main__':

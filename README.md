@@ -24,8 +24,6 @@
   - ![hot nebula](snaps/hot_nebula.png)
 - island
   - ![island](snaps/island.png)
-- island zoom
-  - ![island zoom](snaps/island_zoom.png)
 - land
   - ![land](snaps/land.png)
 - marble fractal
@@ -52,28 +50,70 @@
 - [INSTALLATION](docs/INSTALL.md) document.
 
 ## Usage
-Show users how to use the software.
-Be specific.
-Use appropriate formatting when showing code snippets.
+- [EXAMPLE](main.py)
+- Noise functions
+  - >**NPerlin**(<br>
+      seed: int = None,<br>
+      frequency: Union[int, tuple[int, ...]] = 8,<br>
+      waveLength: Union[float, tuple[float]] = 128,<br>
+      warp: Union['Warp', tuple['Warp']] = None,<br>
+      _range: tuple[float, float] = None<br>
+    )
+  - >**Noise**(<br>
+      seed: int = None,<br>
+      frequency: frequencyHint = 8,<br>
+      waveLength: waveLengthHint = 128,<br>
+      warp: warpHint = None,<br>
+      _range: rangeHint = None,<br>
+      octaves: int = 8,<br>
+      persistence: float = 0.5,<br>
+      lacunarity: float = 2<br>
+    )
+  - :param **seed**: seed for prng values, default random value
+  - :param **frequency**: number of random values in one unit respect to dimension, default 8
+  - :param **waveLength**: length of one unit respect to dimension, default 128
+  - :param **warp**: the interpolation function used between random value nodes, default selectionTools.Warp.improved()
+  - :param **_range**: bound for noise values, output will be within the give range, default (0, 1)
+  - :param **fwm**: **key word only** - frequency, waveLength multiplier
+  - :param **octaves**: number(s) of additive overlapping noise wave(s), default 8
+  - :param **lacunarity**: frequency multiplier for successive noise octave, default 2
+  - :param **persistence**: amplitude modulator for successive noise octave, default 0.5
+- >**perlinGenerator**(<br>
+      noise: 'NPerlin',<br>
+      *lineSpace: Union[tuple[float, float, float], tuple[float, float]])<br>
+)
+  - generates noise values from given noise instance for given line space
+  - :param **noise**: the noise instance to use for generating noise values
+  - :param **lineSpace**: (start, stop) | (start, stop, resolution) for each dimension, 
+    - _start_: minimum value for nth dimension coordinate 
+    - _stop_: maximum value for nth dimension coordinate 
+    - _resolution_: number of coordinates between start and stop (both included)
+  - :return: tuple of noise values and coordinate mesh for each nth dimension of n-dimension depth
 
 ## How to test the software
-If the software includes automated tests, detail how to run those tests.
+- [Tests](tests)
+- To test Logical consistency run [testLogic](tests/testLogic.py)
+- To test Profile Benchmarking run [testProfile](tests/testProfile.py)
+- To test Visuals run [testVisuals](tests/testVisuals.py)
+- To test Colors run [testCol](tests/testCol.py)
 
 ## Known issues
-Document any known significant shortcomings with the software.
+- **_`No Known Bugs`_**
+- **_`NPerlin.findBounds is bottleneck`_**
 
 ## Getting help
-Instruct users how to get help with this software; this might include links to an issue tracker, wiki, mailing list, etc.
+- Check [main.py](main.py) for usage
+- Check [docs](docs)
+- Check Usage Section
 
-**Example**
-If you have questions, concerns, bug reports, etc, please file an issue in this repository's Issue Tracker.
+If you have questions, concerns, bug reports, etc, please file an [issue]() in this repository's Issue Tracker or
+open a [discussion]() in this repository's Discussion section.
+
 
 ## Getting involved
-This section should detail why people should get involved and describe key areas you are
-currently focusing on; e.g., trying to get feedback on features, fixing certain bugs, building
-important pieces, etc.
+- [Fork]() the repository and issue a [PR]() to contribute
 
-General instructions on _how_ to contribute should be stated with a link to [CONTRIBUTING](docs/CONTRIBUTING.md).
+General instructions on _how_ to contribute  [CONTRIBUTING](docs/CONTRIBUTING.md).
 
 ----
 
