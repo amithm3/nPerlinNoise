@@ -1,18 +1,20 @@
 # N Perlin Noise
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
-- A powerful and fast API for n-dimensional noise.
-- Easy hyper-parameters selection of octaves, lacunarity and persistence
+- A _powerful_ and _fast_ API for _n-dimensional_ noise.
+- Easy hyper-parameters selection of _octaves_, _lacunarity_ and _persistence_
   as well as complex and customizable hyper-parameters for n-dimension
-  frequency, waveLength, warp(interpolation) and range.
+  _frequency_, _waveLength_, _warp_(interpolation) and _range_.
 - Includes various helpful tools for noise generation and for procedural generation tasks
-  such as customizable Gradient, Warp classes.
-- Implements custom PRNG generator for n-dimension and can be easily tuned.
+  such as customizable _Gradient_, _Color Gradients_, _Warp_ classes.
+- Implements custom _PRNG_ generator for n-dimension and can be easily tuned.
 
 **Details**:
 - **Technology stack**:
-  - **Status**: [v0.1.2-alpha](https://github.com/Amith225/NPerlinNoise/releases/tag/v0.1.2-alpha)
-  - [CHANGELOG](docs/CHANGELOG.md)
+  > **Status**: **`v0.1.2-alpha9`** Packaging Trails<br>
+  > **All Packages**: [releases](https://github.com/Amith225/NPerlinNoise/releases)<br>
+  > **PyPI**: [v0.1.2a10](https://test.pypi.org/project/NPerlinNoise/0.1.2a10/)<br>
+  > [CHANGELOG](docs/CHANGELOG.md)<br>
 
 **Screenshots**:
 - raw
@@ -41,7 +43,7 @@
 ---
 
 ## Dependencies
-- Python>=3.10.0
+- `Python>=3.10.0`
 
 for production dependencies see [Requirements](requirements.txt)<br>
 for development dependencies see [Dev-Requirements](requirements_dev.txt)
@@ -49,6 +51,7 @@ for development dependencies see [Dev-Requirements](requirements_dev.txt)
 ## Installation
 for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
 
+<a id="usage"></a>
 ## Usage
 for detailed usage see [EXAMPLE](tests/main.py)
 
@@ -76,7 +79,7 @@ open a [discussion](https://github.com/Amith225/NPerlinNoise/discussions/7) in t
 
 
 ## Getting involved
-- Looking for Contributors for WebApps
+- `Looking for Contributors for WebApps`
 - [Fork](https://github.com/Amith225/NPerlinNoise/fork) the repository
   and issue a [PR](https://github.com/Amith225/NPerlinNoise/pulls) to contribute
 
