@@ -1,13 +1,13 @@
 def find_all(a_str, sub, overlap=False):
-    start = 0
+    start_ = 0
     while True:
-        start = a_str.find(sub, start)
-        if start == -1: return
-        yield start
+        start_ = a_str.find(sub, start_)
+        if start_ == -1: return
+        yield start_
         if overlap:
-            start += 1
+            start_ += 1
             continue
-        start += len(sub)
+        start_ += len(sub)
 
 
 with open('README.md', 'r') as file:
@@ -16,7 +16,7 @@ with open('README.md', 'r') as file:
 _content = ""
 _end = -1
 ignore = ["#usage"]
-base = 'https://github.com/Amith225/NPerlinNoise/tree/master/'
+base = 'https://raw.github.com/Amith225/NPerlinNoise/master/'
 for start, end in zip(find_all(content, '['), find_all(content, ']')):
     _content += content[_end + 1:start]
     end += 1
@@ -27,5 +27,5 @@ for start, end in zip(find_all(content, '['), find_all(content, ']')):
     _content += alt_text + f"({link})"
 _content += content[_end + 1:]
 
-with open('README.pypi.md', 'w+') as file:
+with open('READMEpypi.md', 'w+') as file:
     file.write(_content)
