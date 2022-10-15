@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "NPerlinNoise"
-version = "0.1.2-alpha10"
+version = "0.1.3-alpha"
 description = "A robust open source implementation of Perlin Noise Algorithm for N-Dimensions"
 readme = "README_pypi.md"
 authors = [{ name = "Amith225", email = "amitharun3@gmail.com" }]

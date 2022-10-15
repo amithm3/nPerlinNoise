@@ -1,3 +1,10 @@
+![GitHub](https://img.shields.io/github/license/Amith225/NPerlinNoise)
+![PyPI](https://img.shields.io/pypi/v/NPerlinNoise)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Amith225/NPerlinNoise)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Amith225/NPerlinNoise?include_prereleases)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/NPerlinNoise)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/NPerlinNoise)
+
 # N Perlin Noise
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
@@ -11,34 +18,36 @@
 
 **Details**:
 - **Technology stack**:
-  > **Status**: **`v0.1.2-alpha9`** Packaging Trails<br>
+  > **Status**: **`v0.1.3-alpha`** Ready for public PyPI release<br>
   > **All Packages**: [releases](https://github.com/Amith225/NPerlinNoise/releases)<br>
-  > **PyPI**: [v0.1.2a10](https://test.pypi.org/project/NPerlinNoise/0.1.2a10/)<br>
+  > **PyPI**: [v0.1.3a0](https://pypi.org/project/NPerlinNoise/0.1.3a0/)<br>
   > [CHANGELOG](docs/CHANGELOG.md)<br>
 
 **Screenshots**:
-- raw
-  - ![raw](snaps/raw.png)
-- wood
-  - ![wood](snaps/wood.png)
-- hot nebula
-  - ![hot nebula](snaps/hot_nebula.png)
-- island
-  - ![island](snaps/island.png)
-- land
-  - ![land](snaps/land.png)
-- marble fractal
-  - ![marble fractal](snaps/marble_fractal.png)
-- patch
-  - ![patch](snaps/patch.png)
-- ply1
-  - ![ply1](snaps/ply1.png)
-- ply2
-  - ![ply2](snaps/ply2.png)
-- stripes
-  - ![stripes](snaps/stripes.png)
-- warp
-  - ![warp](snaps/warp.png)
+- raw<br>
+  ![raw](snaps/raw.png)
+- wood<br>
+  ![wood](snaps/wood.png)
+- hot nebula<br>
+  ![hot nebula](snaps/hot_nebula.png)
+- island<br>
+  ![island](snaps/island.png)
+- land<br>
+  ![land](snaps/land.png)
+- marble fractal<br>
+  ![marble fractal](snaps/marble_fractal.png)
+- patch<br>
+  ![patch](snaps/patch.png)
+- color patch<br>
+  ![color patch](snaps/color_patch.png)
+- ply1<br>
+  ![ply1](snaps/ply1.png)
+- ply2<br>
+  ![ply2](snaps/ply2.png)
+- stripes<br>
+  ![stripes](snaps/stripes.png)
+- warp<br>
+  ![warp](snaps/warp.png)
 
 ---
 

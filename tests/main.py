@@ -1,4 +1,4 @@
-# todo: versions auto
+# todo: versions auto [in package.json, __init__.py, pyproject.toml, README.md]
 # todo: usage and main.py
 # todo: PyPI link in README.md
 

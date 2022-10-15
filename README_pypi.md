@@ -1,3 +1,10 @@
+![GitHub](https://img.shields.io/github/license/Amith225/NPerlinNoise)
+![PyPI](https://img.shields.io/pypi/v/NPerlinNoise)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Amith225/NPerlinNoise)
+![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Amith225/NPerlinNoise?include_prereleases)
+![PyPI - Python Version](https://img.shields.io/pypi/pyversions/NPerlinNoise)
+![PyPI - Wheel](https://img.shields.io/pypi/wheel/NPerlinNoise)
+
 # N Perlin Noise
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
@@ -11,34 +18,36 @@
 
 **Details**:
 - **Technology stack**:
-  > **Status**: **`v0.1.2-alpha9`** Packaging Trails<br>
+  > **Status**: **`v0.1.3-alpha`** Ready for public PyPI release<br>
   > **All Packages**: [releases](https://github.com/Amith225/NPerlinNoise/releases)<br>
-  > **PyPI**: [](https://github.com/Amith225/NPerlinNoise/blob/master/)<br>
+  > **PyPI**: [v0.1.3a0](https://pypi.org/project/NPerlinNoise/0.1.3a0/)<br>
   > [CHANGELOG](https://github.com/Amith225/NPerlinNoise/blob/master/docs/CHANGELOG.md)<br>
 
 **Screenshots**:
-- raw
-  - ![raw](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/raw.png)
-- wood
-  - ![wood](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/wood.png)
-- hot nebula
-  - ![hot nebula](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/hot_nebula.png)
-- island
-  - ![island](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/island.png)
-- land
-  - ![land](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/land.png)
-- marble fractal
-  - ![marble fractal](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/marble_fractal.png)
-- patch
-  - ![patch](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/patch.png)
-- ply1
-  - ![ply1](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/ply1.png)
-- ply2
-  - ![ply2](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/ply2.png)
-- stripes
-  - ![stripes](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/stripes.png)
-- warp
-  - ![warp](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/warp.png)
+- raw<br>
+  ![raw](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/raw.png)
+- wood<br>
+  ![wood](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/wood.png)
+- hot nebula<br>
+  ![hot nebula](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/hot_nebula.png)
+- island<br>
+  ![island](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/island.png)
+- land<br>
+  ![land](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/land.png)
+- marble fractal<br>
+  ![marble fractal](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/marble_fractal.png)
+- patch<br>
+  ![patch](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/patch.png)
+- color patch<br>
+  ![color patch](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/color_patch.png)
+- ply1<br>
+  ![ply1](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/ply1.png)
+- ply2<br>
+  ![ply2](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/ply2.png)
+- stripes<br>
+  ![stripes](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/stripes.png)
+- warp<br>
+  ![warp](https://raw.github.com/Amith225/NPerlinNoise/master/snaps/warp.png)
 
 ---
 

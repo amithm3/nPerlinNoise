@@ -8,3 +8,7 @@
 
 ## v0.1.2-alpha[x]:
 - packaging trails
+
+## v0.1.3-alpha:
+- ready for public PyPI release
+- wheels supported now
