@@ -1,0 +1,40 @@
+# pyproject.toml
+
+[build-system]
+requires = ["setuptools>=61.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "NPerlinNoise"
+version = "0.1.2-alpha"
+description = "A robust open source implementation of Perlin Noise Algorithm for N-Dimensions"
+readme = "README.pypi.md"
+authors = [{ name = "Amith225", email = "amitharun3@gmail.com" }]
+license = { file = "LICENSE" }
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+]
+keywords = [
+    "perlin-noise", "perlin", "n-dimensional", "numpy-perlin", "numpy-noise", "noise", "noise-algorithm", "performance"
+]
+dependencies = [
+    "numexpr>=2.8.3",
+    "numpy>=1.23.3",
+]
+requires-python = ">=3.10"
+
+[project.optional-dependencies]
+dev = [
+    "matplotlib>=3.6.1",
+    "plotly>=5.10.0",
+    "PyQt5>=5.15.7",
+    "PyQt5-stubs>=5.15.6.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Amith225/NPerlinNoise"
+
+[project.scripts]
+NPerlinNoise = "NPerlinNoise.__main__:main"

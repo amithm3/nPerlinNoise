@@ -13,7 +13,7 @@ class Noise(NPerlin):
 
     def setOctaves(self, octaves: int):
         self.__octaves = self.__getOctaves(octaves)
-        self.fwm = self.__octaves
+        self.setFwm(self.__octaves)
 
     @property
     def persistence(self) -> float:
@@ -30,9 +30,9 @@ class Noise(NPerlin):
         self.__lacunarity = self.__getLacunarity(lacunarity)
 
     def __repr__(self):
-        return super(Noise, self).__repr__()[:-1] + \
-               f' oct={self.octaves} per={self.persistence} lac={self.lacunarity}>'
+        return super(Noise, self).__repr__()[:-1] + f' oct={self.octaves} per={self.persistence} lac={self.lacunarity}>'
 
+    # todo: docs
     @property
     def weight(self):
         hmax = \
@@ -45,17 +45,22 @@ class Noise(NPerlin):
                  lacunarity: float = 2.0,
                  **kwargs):
         """
-        :param octaves: number(s) of additive overlapping noise wave(s), default 8
-        :param lacunarity: frequency multiplier for successive noise octave, default 2
-        :param persistence: amplitude modulator for successive noise octave, default 0.5
+        todo: docs
+        :param octaves: number(s) of additive overlapping noise wave(s)
+        :param lacunarity: frequency multiplier for successive noise octave
+        :param persistence: amplitude modulator for successive noise octave
         """
-
         self.__octaves = self.__getOctaves(octaves)
         self.__persistence = self.__getPersistence(persistence)
         self.__lacunarity = self.__getLacunarity(lacunarity)
         super(Noise, self).__init__(*args, **kwargs, fwm=self.__octaves)
 
     def __call__(self, *coords: Union["collections.Iterable", float]) -> "np.ndarray":
+        """
+        todo: docs
+        :param coords:
+        :return:
+        """
         fCoords, shape = self.formatCoords(coords)
         fCoords = np.concatenate([fCoords] + [fCoords := fCoords * self.__lacunarity for _ in range(1, self.__octaves)],
                                  axis=1)
@@ -64,7 +69,7 @@ class Noise(NPerlin):
         bSpace = fab[tuple(bIndex - bIndex.min((1, 2), keepdims=True))]
         h = self.bNoise(bSpace.T, rCoords.T).reshape(self.__octaves, -1)
         h *= [[w] for w in self.weight]
-        return h.sum(axis=0).reshape(shape)
+        return self.applyRange(h.sum(axis=0)).reshape(shape)
 
     @staticmethod
     def __getOctaves(octaves):

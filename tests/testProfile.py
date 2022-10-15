@@ -1,5 +1,4 @@
-from src.generator import meshgrid
-from src import *
+from NPerlinNoise import *
 
 mul, res = 1, 8
 x, y = 128 * mul, 128 * mul

@@ -1,4 +1,8 @@
-from src import *
+# todo: versions auto
+# todo: usage and main.py
+# todo: PyPI link in README.md
+
+from NPerlinNoise import *
 
 noise = Noise(
     seed=None,

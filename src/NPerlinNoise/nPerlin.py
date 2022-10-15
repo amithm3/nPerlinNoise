@@ -13,6 +13,9 @@ rangeHint = tuple[float, float]
 
 
 class NPerlin:
+    """
+    todo: docs
+    """
     @property
     def seed(self) -> int:
         return self.__prng.seed()
@@ -56,9 +59,16 @@ class NPerlin:
     def setRange(self, _range: rangeHint):
         self.__range = self.__getRange(_range)
 
+    @property
+    def fwm(self) -> int:
+        return self.__fwm
+
+    def setFwm(self, fwm: int):
+        self.__fwm = self.__getFwm(fwm)
+
     # matrix of desired shape and offset
-    def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None) -> "np.ndarray":
-        return self.__prng.shaped(shape, off)
+    def fabric(self, shape: tuple[int, ...], off: tuple[int, ...] = None, dtype=None) -> "np.ndarray":
+        return self.__prng.shaped(shape, off, dtype)
 
     # multiplier for converting coords into fabric index region based on frequency and wavelength
     @property
@@ -80,34 +90,44 @@ class NPerlin:
                  *,
                  fwm: int = 1):
         """
-        :param seed: seed for prng values, default random value
-        :param frequency: number of random values in one unit respect to dimension, default 8
-        :param waveLength: length of one unit respect to dimension, default 128
-        :param warp: the interpolation function used between random value nodes, default selectionTools.Warp.improved()
-        :param _range: bound for noise values, output will be within the give range, default (0, 1)
+        todo: docs
+        :param seed: seed for prng values
+        :param frequency: number of random values in one unit respect to dimension
+        :param waveLength: length of one unit respect to dimension
+        :param warp: the interpolation function used between random value nodes
+        :param _range: bound for noise values, output will be within the give range
         :param fwm: key word only - frequency, waveLength multiplier
         """
         if warp is None: warp = Warp.improved()
         if _range is None: _range = (0, 1)
-
-        assert isinstance(fwm, int) and fwm > 0, \
-            "kew word only param fwm must be 'int' > 0"
 
         self.__prng = NPrng(seed)  # matrix generator of random value nodes
         self.__frequency = self.__getFrequency(frequency)
         self.__waveLength = self.__getWaveLength(waveLength)
         self.__warp = self.__getWarp(warp)
         self.__range = self.__getRange(_range)
-        self.fwm = fwm
+        self.__fwm = self.__getFwm(fwm)
 
     def __call__(self, *coords: Union["collections.Iterable", float]) -> "np.ndarray":
+        """
+        todo: docs
+        :param coords:
+        :return:
+        """
         fCoords, shape = self.formatCoords(coords)
         bIndex, rCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
-        bSpace = fab[tuple(bIndex - bIndex.min((1, 2), keepdims=True))]
+        bIndex = bIndex - bIndex.min((1, 2), keepdims=True)
+        bSpace = fab[tuple(bIndex)]
         return self.applyRange(self.bNoise(bSpace.T, rCoords.T)).reshape(shape)
 
     def bNoise(self, bSpace, rCoords):
+        """
+        todo: docs
+        :param bSpace:
+        :param rCoords:
+        :return:
+        """
         dims = rCoords.shape[1]
         pairs = bSpace.reshape(-1, 2)
         # collapse dimensions
@@ -117,11 +137,23 @@ class NPerlin:
         return self.__interpolation(pairs, rCoords[:, 0], 0)
 
     def __interpolation(self, pairs, coords, d):
+        """
+        todo: docs
+        :param pairs:
+        :param coords:
+        :param d:
+        :return:
+        """
         heightStretch = pairs[:, 1] - pairs[:, 0]
         return self.__warp[d](coords) * heightStretch + pairs[:, 0]
 
     # bottleneck: takes a lot of time for higher dims
     def findBounds(self, fCoords):
+        """
+        todo: docs
+        :param fCoords:
+        :return:
+        """
         bCoords = (fCoords * [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
         rCoords = bCoords - lowerIndex  # relative unitized coords [0, 1]
@@ -130,19 +162,37 @@ class NPerlin:
         bIndex %= [[[f]] for f in self.mFrequency[:len(bIndex)]]  # wrapping indices under the valid range
         return bIndex[::-1], rCoords
 
-    def findFab(self, bIndex: "np.ndarray"):
-        bFab = bIndex.min((1, 2)), bIndex.max((1, 2))  # noqa
-        return self.__prng.shaped((bFab[1] - bFab[0]) + 1, bFab[0], dtype=np.float32)
+    def findFab(self, bIndex: "np.ndarray") -> "np.ndarray":
+        """
+        locates and retrieves the minimal required fabric values from bIndex
+        :param bIndex: the bounding indexes for the fabric
+        :return: fabric matrix
+        """
+        bFab = bIndex.min((1, 2)), bIndex.max((1, 2))  # extreme bound for fabric
+        bShape = (bFab[1] - bFab[0]) + 1  # index to shape
+        return self.fabric(bShape, bFab[0], dtype=np.float32)
 
-    def applyRange(self, noise):
+    def applyRange(self, noise: "np.ndarray") -> "np.ndarray":
+        """
+        maps noise values from [min(noise), max(noise)] -> [range[0], range[1]]
+        :param noise: the output values from bNoise
+        :return: mapped noise values
+        """
         return noise * (self.range[1] - self.range[0]) + self.range[0]
 
     @staticmethod
-    def formatCoords(coords: tuple) -> tuple["np.ndarray[np.float32]", tuple[int]]:
+    def formatCoords(coords: tuple[Union[float, "collections.Iterable"], ...]) \
+            -> tuple["np.ndarray[np.float32]", tuple[int, ...]]:
+        """
+        ensures coords is homogeneous and casts values into float32, flattens all dimensions, truncates -ve coords
+
+        :param coords: coordinates indexed by dimensions
+        :return: flattened formatted coords, required output shape
+        """
         coords = np.array(coords, dtype=np.float32)
-        shape = coords.shape
-        coords = coords.reshape(len(coords), -1)
-        return coords.__abs__(), shape[1:]
+        coords, shape = coords.reshape(len(coords), -1), coords.shape
+        coords = coords.__abs__()
+        return coords, shape[1:]
 
     @staticmethod
     def __getFrequency(frequency):
@@ -174,3 +224,9 @@ class NPerlin:
         assert len(_range) == 2 and isinstance(_range[0], (int, float)) and isinstance(_range[1], (int, float)), \
             "param '_range' must be a tuple of two 'float'('int')"
         return _range
+
+    @staticmethod
+    def __getFwm(fwm):
+        assert isinstance(fwm, int) and fwm > 0, \
+            "kew word only param fwm must be 'int' > 0"
+        return fwm

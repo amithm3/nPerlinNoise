@@ -1,0 +1,6 @@
+# MANIFEST.in
+
+include docs/*
+include src/NPerlinNoise/*.toml
+include snaps/*
+include tests/*

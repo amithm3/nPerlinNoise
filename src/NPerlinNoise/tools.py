@@ -11,11 +11,6 @@ def iterable(var):
         return False
 
 
-def maxLen(_iterables, *, key=None):
-    if key is None: key = lambda x: x
-    return len(key(max(_iterables, key=lambda x: len(key(x)))))
-
-
 def findCorners(dim):
     """
     :param dim: corners of dim-dimensional box will be found
@@ -30,7 +25,8 @@ def findCorners(dim):
         return corners
 
 
-def rand3(X, Y, z):
+# todo: docs
+def rand3(X, Y, z) -> 'np.ndarray':
     # mix around the bits in X
     x = X * 3266489917 + 374761393
     x = (x << 17) | (x >> 15)
@@ -52,6 +48,9 @@ def rand3(X, Y, z):
 
 
 class NPrng:
+    """
+    todo: docs
+    """
     __m = np.uint32(2 ** 32 - 1)
 
     @property
@@ -63,6 +62,12 @@ class NPrng:
         self.seed(seed)
 
     def __call__(self, *ns, dtype=None):
+        """
+        todo docs
+        :param ns:
+        :param dtype:
+        :return:
+        """
         seed = self.__seed
         for i, n in enumerate(ns): seed = rand3(np.uint32(n), np.uint32(seed), np.uint32(i))
         return (np.uint32(seed) / self.__m).astype(dtype)
@@ -74,7 +79,14 @@ class NPrng:
             self.__seed = seed
         return self.__seed
 
-    def shaped(self, shape: tuple[int, ...], off: tuple[int, ...] = None, dtype=None):
+    def shaped(self, shape: tuple[int, ...], off: tuple[int, ...] = None, dtype=None) -> 'np.ndarray':
+        """
+        todo docs
+        :param shape:
+        :param off:
+        :param dtype:
+        :return:
+        """
         if off is None: off = (0,) * len(shape)
         mesh = [m.ravel() for m in
                 np.meshgrid(*[np.arange(o, s + o) for s, o in zip(shape, off)], indexing="ij")[::-1]]  # noqa
@@ -82,6 +94,9 @@ class NPrng:
 
 
 class NTuple(tuple):
+    """
+    todo: docs
+    """
     def __mul__(self, other) -> "NTuple":
         if iterable(other):
             return NTuple(a * o for a, o in zip(self[:len(other)], other))

@@ -5,61 +5,72 @@ import numpy as np
 try:
     import numexpr as ne
 except ImportError:
-    class ne:  # noqa
+    class Ne:
         @staticmethod
         def evaluate(expr, local_dict):
             local_dict['a'] = np.array(local_dict['a'])
             return eval(expr, {}, local_dict)
 
 
+    ne = Ne
+
+
 class Warp:
+    """
+    todo: docs
+    """
+
     def __repr__(self):
         return f"<Warp:{self.__name}>"
 
-    def __init__(self, foo: Callable[['np.ndarray'], 'np.ndarray'], _name: str):
-        self.__name = _name
+    def __init__(self, foo: Callable[['np.ndarray'], 'np.ndarray'], name: str):
+        self.__name = name
         self.__foo = foo
 
-    def __call__(self, a):
+    def __call__(self, a: 'np.ndarray'):
         return self.__foo(a)
 
-    @staticmethod
-    def improved():
-        return Warp(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}), "Improved")
+    @classmethod
+    def improved(cls):
+        return cls(lambda a: ne.evaluate("a * a * a * (3 * a * (2 * a - 5) + 10)", local_dict={'a': a}), "Improved")
 
-    @staticmethod
-    def lerp():
-        return Warp(lambda a: ne.evaluate("a", local_dict={'a': a}), "lerp")
+    @classmethod
+    def lerp(cls):
+        return cls(lambda a: ne.evaluate("a", local_dict={'a': a}), "lerp")
 
-    @staticmethod
-    def square():
-        return Warp(lambda a: ne.evaluate("a * a", local_dict={'a': a}), "Square")
+    @classmethod
+    def square(cls):
+        return cls(lambda a: ne.evaluate("a * a", local_dict={'a': a}), "Square")
 
-    @staticmethod
-    def cubic(): return Warp(lambda a: ne.evaluate("a * a * a", local_dict={'a': a}), "Cubic")
+    @classmethod
+    def cubic(cls): return cls(lambda a: ne.evaluate("a * a * a", local_dict={'a': a}), "Cubic")
 
-    @staticmethod
-    def cosine(): return Warp(
+    @classmethod
+    def cosine(cls): return cls(
         lambda a: ne.evaluate("(1 - cos(pi*a)) / 2", local_dict={'a': a, 'pi': np.float32(np.pi)}), "Cosine")
 
-    @staticmethod
-    def step():
-        return Warp(lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a}), "Step")
+    @classmethod
+    def step(cls):
+        return cls(lambda a: ne.evaluate("where(a < .5, 0, 1)", local_dict={'a': a}), "Step")
 
-    @staticmethod
-    def polynomial(n: float):
-        return Warp(lambda a: ne.evaluate("a ** n", local_dict={'a': a, 'n': n}), f"Poly{n}")
+    @classmethod
+    def polynomial(cls, n: float):
+        return cls(lambda a: ne.evaluate("a ** n", local_dict={'a': a, 'n': n}), f"Poly{n}")
 
 
 class Gradient:
+    """
+    todo: docs
+    """
+
     def __repr__(self):
         return f"<Gradient:{self.__name}>"
 
-    def __init__(self, foo: Callable[['np.ndarray', ...], 'np.ndarray'], _name):
-        self.__name = _name
+    def __init__(self, foo: Callable[['np.ndarray', ...], 'np.ndarray'], name):
+        self.__name = name
         self.__foo = foo
 
-    def __call__(self, a, coordsMesh):
+    def __call__(self, a: 'np.ndarray', coordsMesh: 'np.ndarray'):
         return self.__foo(a, coordsMesh)
 
     @classmethod
