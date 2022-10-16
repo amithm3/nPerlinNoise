@@ -1,7 +1,7 @@
 # MANIFEST.in
 
 include docs/*
-include src/NPerlinNoise/*
+include src/nPerlinNoise/*
 include snaps/*
 include tests/*
-include README_pypi.md
+include README_EMBED.md

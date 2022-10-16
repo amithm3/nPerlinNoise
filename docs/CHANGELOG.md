@@ -12,3 +12,7 @@
 ## v0.1.3-alpha:
 - ready for public PyPI release
 - wheels supported now
+
+## v0.1.3-alpha1:
+- improved docs, appended usage section
+- renamed import directory `NPerlinNoise` to `nPerlinNoise`

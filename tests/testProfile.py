@@ -1,4 +1,4 @@
-from NPerlinNoise import *
+from nPerlinNoise import *
 
 mul, res = 1, 8
 x, y = 128 * mul, 128 * mul

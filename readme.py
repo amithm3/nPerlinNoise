@@ -1,38 +1,39 @@
-def find_all(a_str, sub, overlap=False):
-    start_ = 0
-    while True:
-        start_ = a_str.find(sub, start_)
-        if start_ == -1: return
-        yield start_
-        if overlap:
-            start_ += 1
-            continue
-        start_ += len(sub)
+# readme.py
+
+def findOpenClose(string, char: tuple[str, str]):
+    i = _i = string.find(char[0])
+    ie = string.find(char[1])
+    while string.count(char[0], i + 1, ie) != string.count(char[1], i + 1, ie):
+        ie = string.find(char[1], ie + 1)
+    return i, ie
 
 
-def get_embed_readme():
-    with open('README.md', 'r') as _file:
-        content = _file.read()
-
-    _content = ""
-    _end = -1
+def embed_link(link):
     ignore = ["#usage"]
     raw = ['.png', '.txt']
-    base_raw = 'https://raw.github.com/Amith225/NPerlinNoise/master/'
-    base = 'https://github.com/Amith225/NPerlinNoise/blob/master/'
-    for start, end in zip(find_all(content, '['), find_all(content, ']')):
-        _content += content[_end + 1:start]
-        end += 1
-        alt_text = content[start:end]
-        _start, _end = end + 1, content.find(')', end)
-        link = content[_start:_end]
-        if not link.startswith('http') and link not in ignore:
-            link = (base_raw if any(link.endswith(r) for r in raw) else base) + link
-        _content += alt_text + f"({link})"
-    _content += content[_end + 1:]
-
-    return _content
+    base_raw = 'https://raw.github.com/Amith225/nPerlinNoise/master/'
+    base = 'https://github.com/Amith225/nPerlinNoise/blob/master/'
+    if not link.startswith('http') and link not in ignore:
+        link = (base_raw if any(link.endswith(r) for r in raw) else base) + link
+    return link
 
 
-with open('README_pypi.md', 'w+') as file:
-    file.write(get_embed_readme())
+def embed(content: str):
+    i, ie = findOpenClose(content, ('[', ']'))
+    if i == -1 or ie == -1: return content
+    if content[ie + 1] == '(':
+        alt_txt = content[i + 1:ie]
+        li, lie = findOpenClose(content[ie + 1:], ('(', ')'))
+        link = content[li + ie + 2:lie + ie + 1]
+        ie = lie + ie + 1
+        _embed_ = f"[{embed(alt_txt)}]({embed_link(link)})"
+        print(_embed_)
+    else:
+        _embed_ = content[i:ie + 1]
+    return content[:i] + _embed_ + embed(content[ie + 1:])
+
+
+if __name__ == '__main__':
+    with open('README_EMBED.md', 'w+') as wFile:
+        with open('README.md', 'r') as rFile:
+            wFile.write(embed(rFile.read()))

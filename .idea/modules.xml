@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/PerlinNoise.iml" filepath="$PROJECT_DIR$/.idea/PerlinNoise.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/NPerlinNoise.iml" filepath="$PROJECT_DIR$/.idea/NPerlinNoise.iml" />
     </modules>
   </component>
 </project>

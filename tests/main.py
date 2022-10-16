@@ -1,8 +1,8 @@
-# todo: versions auto [in package.json, __init__.py, pyproject.toml, README.md]
-# todo: usage and main.py
-# todo: PyPI link in README.md
+# main.py
 
-from NPerlinNoise import *
+# todo: versions auto in [package.json, __init__.py, pyproject.toml, README.md]
+
+from nPerlinNoise import *
 
 noise = Noise(
     seed=None,
