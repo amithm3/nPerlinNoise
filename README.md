@@ -34,15 +34,19 @@
 
 **Screenshots**:
 
-![](snaps/img_587383161.png)
-![](snaps/img_1410614909.png)
-![](snaps/img_1742083597.png)
-![](snaps/img_2580891136.png)
-![](snaps/img_3001325707.png)
-![](snaps/img_3403505649.png)
-![](snaps/img_4183221855.png)
-![](snaps/img_4237425687.png)
-![](snaps/img_4246716738.png)
+<div style="text-align: center">
+
+  ![](snaps/img_587383161.png)
+  ![](snaps/img_1410614909.png)
+  ![](snaps/img_1742083597.png)
+  ![](snaps/img_2580891136.png)
+  ![](snaps/img_3001325707.png)
+  ![](snaps/img_3403505649.png)
+  ![](snaps/img_4183221855.png)
+  ![](snaps/img_4237425687.png)
+  ![](snaps/img_4246716738.png)
+
+</div>
 
 ---
 
@@ -153,5 +157,5 @@ General instructions on _how_ to contribute  [CONTRIBUTING](docs/CONTRIBUTING.md
 
 | <a href="https://github.com/Amith225"><img src="https://media-exp1.licdn.com/dms/image/C5603AQF2ZzqKQilvOA/profile-displayphoto-shrink_200_200/0/1661225877408?e=1671667200&v=beta&t=tpafcMKWZkUXYHJWNyaCs3bnAiGjri6S7Y-GjjXmuXQ"></a> |
 |:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|                                                                                         **[Amith M](https://www.linkedin.com/in/amith-m-17088b246/)**                                                                                          |
+|                                                                                         **[Amith M](https://www.linkedin.com/in/iamandeep/)**                                                                                          |
 |                                                  [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/amithm3 )                                                   |
