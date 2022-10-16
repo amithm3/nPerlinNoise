@@ -229,4 +229,8 @@ class LinearColorGradient:
 
     @classmethod
     def sun(cls, **kwargs):
-        return cls("#800909", "#fdcf58", **kwargs)
+        return cls("#000", "#800909", "#fdcf58", **kwargs)
+
+    @classmethod
+    def wood(cls, **kwargs):
+        return cls("#C19A6C", "#BA8A65", "#B37A5F", "#AB6A58", "#A45A51", **kwargs)

@@ -7,4 +7,4 @@ __all__ = ['NPerlin', 'Noise',
            'Warp', 'Gradient', 'LinearColorGradient',
            'perlinGenerator', 'applyGrads', 'meshgrid']
 
-__version__ = "0.1.3-alpha1"
+__version__ = "0.1.3-alpha2"

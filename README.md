@@ -3,8 +3,8 @@
 <a href="https://pypi.org/project/nPerlinNoise">![PyPI](https://img.shields.io/pypi/v/NPerlinNoise)</a>
 <a href="https://github.com/Amith225/nPerlinNoise/releases/latest">![GitHub release (latest by date)](https://img.shields.io/github/v/release/Amith225/NPerlinNoise)</a>
 <a href="https://github.com/Amith225/nPerlinNoise/releases">![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/Amith225/NPerlinNoise?include_prereleases)</a>
-<a href="https://www.python.org/downloads/">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/NPerlinNoise)</a>
-<a href="#">![PyPI - Wheel](https://img.shields.io/pypi/wheel/NPerlinNoise)</a>
+<a href="https://www.python.org/downloads/">![PyPI - Python Version](https://img.shields.io/pypi/pyversions/nPerlinNoise)</a>
+<a href="#">![PyPI - Wheel](https://img.shields.io/pypi/wheel/nPerlinNoise)</a>
 
 [![forthebadge](https://forthebadge.com/images/badges/built-with-love.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/open-source.svg)](https://forthebadge.com)
@@ -12,7 +12,7 @@
 [![forthebadge](https://forthebadge.com/images/badges/contains-tasty-spaghetti-code.svg)](https://forthebadge.com)
 [![forthebadge](https://forthebadge.com/images/badges/powered-by-coffee.svg)](https://forthebadge.com)
 
-# N Perlin Noise
+# nPerlinNoise
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 - A _powerful_ and _fast_ API for _n-dimensional_ noise.
@@ -28,23 +28,21 @@
   > **Status**: **`v0.1.3-alpha`** Improving docs<br>
   > **All Packages**: [releases](https://github.com/Amith225/nPerlinNoise/releases)<br>
   > [CHANGELOG](docs/CHANGELOG.md)<br>
-    ###### > _Tested on Python 3.10, Windows 10_
+  > ###### _Tested on Python 3.10, Windows 10_
 - **Future work**:
   > **optimization** for higher dimensions and single value coordinates<br>
 
 **Screenshots**:
-- raw<br>![raw](snaps/raw.png)
-- wood<br>![wood](snaps/wood.png)
-- hot nebula<br>![hot nebula](snaps/hot_nebula.png)
-- island<br>![island](snaps/island.png)
-- land<br>![land](snaps/land.png)
-- marble fractal<br>![marble fractal](snaps/marble_fractal.png)
-- patch<br>![patch](snaps/patch.png)
-- color patch<br>![color patch](snaps/color_patch.png)
-- ply1<br>![ply1](snaps/ply1.png)
-- ply2<br>![ply2](snaps/ply2.png)
-- stripes<br>![stripes](snaps/stripes.png)
-- warp<br>![warp](snaps/warp.png)
+
+![](snaps/img_587383161.png)
+![](snaps/img_1410614909.png)
+![](snaps/img_1742083597.png)
+![](snaps/img_2580891136.png)
+![](snaps/img_3001325707.png)
+![](snaps/img_3403505649.png)
+![](snaps/img_4183221855.png)
+![](snaps/img_4237425687.png)
+![](snaps/img_4246716738.png)
 
 ---
 
@@ -59,12 +57,11 @@ for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
 
 <a id="usage"></a>
 ## Usage
-- ```
+- ```python
   import nPerlinNoise as nPN
   
   noise = nPN.Noise(seed=69420)
-  ```
-- ```
+
   # get noise values at given n-dimensional coordinates by calling noise with those coords
   # coordinates can be single value, or an iterable
   # noise(..., l, m, n, ...) where l, m, n, ... are single numeric values
@@ -80,17 +77,20 @@ for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
   noise([73, 49])  # [0.52071124, 0.6402224]
   noise([73, 49], [2, 2])  # [0.4563121 , 0.63378346]
   
-  noise([[73], [49], [0]], [[2], [2], [2]], [[0], [1], [2]])
+  noise([[73], [49], [0]],
+        [[2], [2], [2]],
+        [[0], [1], [2]])
   # -> [[0.4563121],
   #     [0.6571784],
   #     [0.16369209]]
   
-  noise([[1, 2], [2, 3]], [[1, 1], [1, 1]], [[2, 2], [2, 2]])
+  noise([[1, 2], [2, 3]],
+        [[1, 1], [1, 1]],
+        [[2, 2], [2, 2]])
   # -> [[0.08666219, 0.09778494],
   #     [0.09778494, 0.14886124]]
-  ```
-- ```
-  # noise(..., l, m, n, ...) has same values with trailing dimensions haveing zero as coordinate
+
+  # noise(..., l, m, n, ...) has same values with trailing dimensions having zero as coordinate
   # i.e noise(..., l, m, n) = noise(..., l, m, n, 0) = noise(..., l, m, n, 0, 0) = noise(..., l, m, n, 0, 0, ...)
   noise(73)  # 0.5207113
   noise(73, 0)  # 0.5207113
