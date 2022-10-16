@@ -32,6 +32,8 @@
 - **Future work**:
   > **optimization** for higher dimensions and single value coordinates<br>
 
+---
+
 **Screenshots**:
 
 <div align="center">
