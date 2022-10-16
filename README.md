@@ -157,7 +157,7 @@ General instructions on _how_ to contribute  [CONTRIBUTING](docs/CONTRIBUTING.md
 
 **Maintainer**:
 
-| <a href="https://github.com/Amith225"><img src="https://media-exp1.licdn.com/dms/image/C5603AQF2ZzqKQilvOA/profile-displayphoto-shrink_200_200/0/1661225877408?e=1671667200&v=beta&t=tpafcMKWZkUXYHJWNyaCs3bnAiGjri6S7Y-GjjXmuXQ"></a> |
-|:--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-|                                                                                     **[Amith M](https://www.linkedin.com/in/amith-m-17088b246/)**                                                                                      |
-|                                                  [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/amithm3 )                                                   |
+|             <a href="https://github.com/Amith225"><img src="https://avatars.githubusercontent.com/u/75326634?v=4"></a>              |
+|:-----------------------------------------------------------------------------------------------------------------------------------:|
+|                                    **[Amith M](https://www.linkedin.com/in/amith-m-17088b246/)**                                    |
+| [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/amithm3 ) |
