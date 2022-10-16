@@ -34,7 +34,7 @@
 
 **Screenshots**:
 
-<div style="text-align: center">
+<div align="center">
 
   ![](snaps/img_587383161.png)
   ![](snaps/img_1410614909.png)
@@ -61,45 +61,45 @@ for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
 
 <a id="usage"></a>
 ## Usage
-- ```python
-  import nPerlinNoise as nPN
-  
-  noise = nPN.Noise(seed=69420)
+```python
+import nPerlinNoise as nPN
 
-  # get noise values at given n-dimensional coordinates by calling noise with those coords
-  # coordinates can be single value, or an iterable
-  # noise(..., l, m, n, ...) where l, m, n, ... are single numeric values
-  # or
-  # noise(...., [l1, l2, ..., lx], [m1, m2, ..., mx], [n1, n2, ..., nx], ....)
-  # where .... are iterable of homogeneous-dimensions
-  # the output will be of same shape of input homogeneous-dimensions
-  
-  noise(73)  # 0.5207113
-  noise(73, 11, 7)  # 0.5700986
-  noise(0, 73, 7, 11, 0, 3)  # 5222712
+noise = nPN.Noise(seed=69420)
 
-  noise([73, 49])  # [0.52071124, 0.6402224]
-  noise([73, 49], [2, 2])  # [0.4563121 , 0.63378346]
-  
-  noise([[73], [49], [0]],
-        [[2], [2], [2]],
-        [[0], [1], [2]])
-  # -> [[0.4563121],
-  #     [0.6571784],
-  #     [0.16369209]]
-  
-  noise([[1, 2], [2, 3]],
-        [[1, 1], [1, 1]],
-        [[2, 2], [2, 2]])
-  # -> [[0.08666219, 0.09778494],
-  #     [0.09778494, 0.14886124]]
+# get noise values at given n-dimensional coordinates by calling noise with those coords
+# coordinates can be single value, or an iterable
+# noise(..., l, m, n, ...) where l, m, n, ... are single numeric values
+# or
+# noise(...., [l1, l2, ..., lx], [m1, m2, ..., mx], [n1, n2, ..., nx], ....)
+# where .... are iterable of homogeneous-dimensions
+# the output will be of same shape of input homogeneous-dimensions
 
-  # noise(..., l, m, n, ...) has same values with trailing dimensions having zero as coordinate
-  # i.e noise(..., l, m, n) = noise(..., l, m, n, 0) = noise(..., l, m, n, 0, 0) = noise(..., l, m, n, 0, 0, ...)
-  noise(73)  # 0.5207113
-  noise(73, 0)  # 0.5207113
-  noise(73, 0, 0) # 0.5207113
-  ```
+noise(73)  # 0.5207113
+noise(73, 11, 7)  # 0.5700986
+noise(0, 73, 7, 11, 0, 3)  # 5222712
+
+noise([73, 49])  # [0.52071124, 0.6402224]
+noise([73, 49], [2, 2])  # [0.4563121 , 0.63378346]
+
+noise([[73], [49], [0]],
+      [[2], [2], [2]],
+      [[0], [1], [2]])
+# -> [[0.4563121],
+#     [0.6571784],
+#     [0.16369209]]
+
+noise([[1, 2], [2, 3]],
+      [[1, 1], [1, 1]],
+      [[2, 2], [2, 2]])
+# -> [[0.08666219, 0.09778494],
+#     [0.09778494, 0.14886124]]
+
+# noise(..., l, m, n, ...) has same values with trailing dimensions having zero as coordinate
+# i.e noise(..., l, m, n) = noise(..., l, m, n, 0) = noise(..., l, m, n, 0, 0) = noise(..., l, m, n, 0, 0, ...)
+noise(73)  # 0.5207113
+noise(73, 0)  # 0.5207113
+noise(73, 0, 0) # 0.5207113
+```
 
 for detailed usage see [EXAMPLE](tests/main.py)
 
