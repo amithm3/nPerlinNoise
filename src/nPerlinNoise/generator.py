@@ -15,10 +15,11 @@ lineSpaceHint = Union[tuple[float, float, float], tuple[float, float]]
 @cache
 def meshgrid(*ls: lineSpaceHint) -> "np.ndarray":
     """
-    todo: docs
-
-    :param ls:
-    :return:
+    :param ls: (start, stop) | (start, stop, resolution) for each dimension,<br>
+        start: minimum value for nth dimension coordinate<br>
+        stop: maximum value for nth dimension coordinate<br>
+        resolution: number of coordinates between start and stop (both included)
+    :return: coordinate mesh for each nth dimension of n-dimension depth
     """
     assert all([len(sl) in (2, 3) for sl in ls]), \
         "*lineSpace must be 'tuple' of float as (start, stop) or (start, stop, resolution)"
@@ -28,14 +29,15 @@ def meshgrid(*ls: lineSpaceHint) -> "np.ndarray":
     return a.transpose(0, *range(1, a.ndim))[::-1]
 
 
-def applyGrads(h, coordsMesh, gradients: Union[tuple["Gradient", ...], "Gradient"] = None):
+# todo: deprecate coordsMesh
+def applyGrads(h: 'np.ndarray',
+               coordsMesh: 'np.ndarray',
+               gradients: Union[tuple["Gradient", ...], "Gradient"] = None) -> 'np.ndarray':
     """
-    todo: docs
-
-    :param h:
-    :param coordsMesh:
-    :param gradients:
-    :return:
+    :param h: noise values
+    :param coordsMesh: meshgrid of h
+    :param gradients: gradient to be applied to h respect to dimension
+    :return: gradient noise
     """
     if gradients is None: gradients = ()
     if not iterable(gradients): gradients = (gradients,)
@@ -45,13 +47,13 @@ def applyGrads(h, coordsMesh, gradients: Union[tuple["Gradient", ...], "Gradient
 
 def perlinGenerator(noise: 'NPerlin', *lineSpace: lineSpaceHint) -> tuple['np.ndarray', 'np.ndarray']:
     """
-    generates noise values from given noise instance for given line space
+    generates noise values from given noise instance for given line-space
 
     :param noise: the noise instance to use for generating noise values
-    :param lineSpace: (start, stop) | (start, stop, resolution) for each dimension,
-        start: minimum value for nth dimension coordinate
-        stop: maximum value for nth dimension coordinate
-        resolution: number of coordinates between start and stop (both included)
+    :param lineSpace: (start, stop) | (start, stop, resolution) for each dimension,<br>
+        start: minimum value for nth dimension coordinate<br>
+        stop: maximum value for nth dimension coordinate<br>
+        resolution: number of coordinates between start and stop (both included)<br>
     :return: tuple of noise values and coordinate mesh for each nth dimension of n-dimension depth
     """
     coordsMesh = meshgrid(*lineSpace)

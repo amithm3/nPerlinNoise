@@ -13,6 +13,9 @@
 [![forthebadge](https://forthebadge.com/images/badges/powered-by-coffee.svg)](https://forthebadge.com)
 
 # nPerlinNoise
+#### indexed on PyPI - [nPerlinNoise](https://pypi.org/project/nPerlinNoise)
+#### repo on GitHub - [nPerlinNoise](https://github.com/Amith225/nPerlinNoise)
+#### docs on ReadTheDocs - [nPerlinNoise]("https://readthedocs.org/")
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 
@@ -27,7 +30,7 @@
 **Details**:
 
 - **Technology stack**:
-  > **Status**: **`v0.1.3-alpha`** Improving docs<br>
+  > **Status**: **`v0.1.3-alpha`** Improving docs and API<br>
   > **All Packages**: [releases](https://github.com/Amith225/nPerlinNoise/releases)<br>
   > [CHANGELOG](docs/CHANGELOG.md)<br>
   > ###### _Tested on Python 3.10, Windows 10_
@@ -58,8 +61,8 @@
 
 - `Python>=3.10.0`
 
-for production dependencies see [Requirements](requirements.txt)<br>
-for development dependencies see [Dev-Requirements](requirements_dev.txt)
+for production dependencies see [Requirements](requirements/requirements.txt)<br>
+for development dependencies see [Dev-Requirements](requirements/dev_requirements.txt)
 
 ## Installation
 
@@ -73,70 +76,79 @@ for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
 
 ## Usage
 
-- **Setup**
+**Setup**
+
+```pycon
+>>> import nPerlinNoise as nPN
+>>> noise = nPN.Noise(seed=69420)
+```
+
+**Basic usage**
+
+Get noise values at given n-dimensional coordinates by calling ```noise()```,<br>
+coordinates can be single value, or an iterable
+
+- ###### single value
+
+  > noise(..., l, m, n, ...)<br>
+  > where l, m, n, ..., are single values
+
+    ```pycon
+    >>> noise(73)
+    array(0.5207113, dtype=float32)
+    >>> noise(73, 11, 7)
+    array(0.5700986, dtype=float32)
+    >>> noise(0, 73, 7, 11, 0, 3)
+    array(0.5222712, dtype=float32)
+    ```
+
+- ###### iterable
+
+  > noise(...., [l1, l2, ..., lx], [m1, m2, ..., mx], [n1, n2, ..., nx], ....)<br>
+  > where ...., are iterable of homogeneous-dimensions
+  > the output will be of same shape of input homogeneous-dimensions
 
   ```pycon
-  >>> import nPerlinNoise as nPN
-  >>> noise = nPN.Noise(seed=69420)
+  >>> noise([73, 49])
+  array([0.52071124, 0.6402224], dtype=float32)
+  >>> noise([73, 49], [2, 2])
+  array([0.4563121, 0.63378346], dtype=float32)
+  >>> noise([[73], [49], [0]],
+  ...       [[2], [2], [2]],
+  ...       [[0], [1], [2]])
+  array([[0.4563121],
+         [0.6571784],
+         [0.16369209]], dtype=float32)
+  >>> noise([[1, 2], [2, 3]],
+  ...       [[1, 1], [1, 1]],
+  ...       [[2, 2], [2, 2]])
+  array([[0.08666219, 0.09778494],
+         [0.09778494, 0.14886124]], dtype=float32)
   ```
 
-- **Basic usage**
+`noise(..., l, m, n, ...)` has same values with trailing dimensions having zero as coordinate
 
-  Get noise values at given n-dimensional coordinates by calling ```noise()```,<br>
-  coordinates can be single value, or an iterable
-    - ###### single value
-      > noise(..., l, m, n, ...)<br>
-      where l, m, n, ... are single values
-      ```pycon
-      >>> noise(73)
-      array(0.5207113, dtype=float32)
-      >>> noise(73, 11, 7)
-      array(0.5700986, dtype=float32)
-      >>> noise(0, 73, 7, 11, 0, 3)
-      array(0.5222712, dtype=float32)
-      ```
-    - ###### iterable
-      > noise(...., [l1, l2, ..., lx], [m1, m2, ..., mx], [n1, n2, ..., nx], ....)<br>
-      where .... are iterable of homogeneous-dimensions
-      the output will be of same shape of input homogeneous-dimensions
-      ```pycon
-      >>> noise([73, 49])
-      array([0.52071124, 0.6402224], dtype=float32)
-      >>> noise([73, 49], [2, 2])
-      array([0.4563121, 0.63378346], dtype=float32)
-      >>> noise([[73], [49], [0]],
-      ...       [[2], [2], [2]],
-      ...       [[0], [1], [2]])
-      array([[0.4563121],
-             [0.6571784],
-             [0.16369209]], dtype=float32)
-      >>> noise([[1, 2], [2, 3]],
-      ...       [[1, 1], [1, 1]],
-      ...       [[2, 2], [2, 2]])
-      array([[0.08666219, 0.09778494],
-             [0.09778494, 0.14886124]], dtype=float32)
-      ```
-  `noise(..., l, m, n, ...)` has same values with trailing dimensions having zero as coordinate
-    - ###### n-dimensionality
-      > noise(..., l, m, n) = noise(..., l, m, n, 0) = noise(..., l, m, n, 0, 0) = noise(..., l, m, n, 0, 0, ...)
-      ```pycon
-      >>> noise(73)
-      array(0.5207113, dtype=float32)
-      >>> noise(73, 0)
-      array(0.5207113, dtype=float32)
-      >>> noise(73, 0, 0)
-      array(0.5207113, dtype=float32)
-      >>> noise(73, 0, 0, 0, 0)
-      array(0.5207113, dtype=float32)
-      ```
+- ###### n-dimensionality
 
-for detailed usage see [EXAMPLE](tests/main.py)
+  > noise(..., l, m, n) = noise(..., l, m, n, 0) = noise(..., l, m, n, 0, 0) = noise(..., l, m, n, 0, 0, ...)
+
+  ```pycon
+  >>> noise(73)
+  array(0.5207113, dtype=float32)
+  >>> noise(73, 0)
+  array(0.5207113, dtype=float32)
+  >>> noise(73, 0, 0)
+  array(0.5207113, dtype=float32)
+  >>> noise(73, 0, 0, 0, 0)
+  array(0.5207113, dtype=float32)
+  ```
+
+for detailed usage see [EXAMPLE](scripts/main.py)
 
 ## API
 
 ## How to test the software
 
-- To test overalls run [main](tests/main.py)
 - To test Logical consistency run [testLogic](tests/testLogic.py)
 - To test Profile Benchmarking run [testProfile](tests/testProfile.py)
 - To test Visuals run [testVisuals](tests/testVisuals.py)
@@ -152,7 +164,7 @@ to see all tests see [Tests](tests)
 
 ## Getting help
 
-- Check [main.py](tests/main.py) for detailed usage
+- Check [main.py](scripts/main.py) for detailed usage
 - Check [docs](docs) for all documentations
 - Check [Usage](#usage) Section
 
@@ -169,7 +181,8 @@ open a [discussion](https://github.com/Amith225/nPerlinNoise/discussions/7) in t
 - [Fork](https://github.com/Amith225/nPerlinNoise/fork) the repository
   and issue a [PR](https://github.com/Amith225/nPerlinNoise/pulls) to contribute
 
-General instructions on _how_ to contribute  [CONTRIBUTING](docs/CONTRIBUTING.md).
+General instructions on _how_ to contribute [CONTRIBUTING](docs/CONTRIBUTING.md)
+and [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
 
 ----
 
@@ -189,10 +202,14 @@ General instructions on _how_ to contribute  [CONTRIBUTING](docs/CONTRIBUTING.md
    inspired the [rand3](src/nPerlinNoise/tools.py) algo
    and ultimately helped for O(1) time complexity n-dimensional random generator [NPrng](src/nPerlinNoise/tools.py)
 3. [StackOverflow](https://stackoverflow.com/) for helping on various occasions throughout the development
+4. [vnoise](https://github.com/plottertools/vnoise) and [opensimplex](https://github.com/lmas/opensimplex)
+   for ideas for README.md
+5. docs derivative from [open-source-project-template](https://github.com/cfpb/open-source-project-template)
+6. packaging help from [realpython](https://realpython.com/pypi-publish-python-package/)
 
-4. **Maintainer**:
+**Maintainer**:
 
-   |        <a href="https://github.com/Amith225"><img src="https://avatars.githubusercontent.com/u/75326634?v=4" height=250></a>        |
-   |:-----------------------------------------------------------------------------------------------------------------------------------:|
-   |                                    **[Amith M](https://www.linkedin.com/in/amith-m-17088b246/)**                                    |
-   | [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/amithm3 ) |
+|        <a href="https://github.com/Amith225"><img src="https://avatars.githubusercontent.com/u/75326634?v=4" height=250></a>        |
+|:-----------------------------------------------------------------------------------------------------------------------------------:|
+|                                    **[Amith M](https://www.linkedin.com/in/amith-m-17088b246/)**                                    |
+| [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/amithm3 ) |

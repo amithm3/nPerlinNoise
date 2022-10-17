@@ -12,6 +12,10 @@
     <orderEntry type="library" name="babel-standalone" level="application" />
     <orderEntry type="library" name="pyodide" level="application" />
   </component>
+  <component name="PackageRequirementsSettings">
+    <option name="requirementsPath" value="./requirements/requirements.txt" />
+    <option name="versionSpecifier" value="Greater or equal (&gt;=x.y.z)" />
+  </component>
   <component name="PyDocumentationSettings">
     <option name="renderExternalDocumentation" value="true" />
   </component>

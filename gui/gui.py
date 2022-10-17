@@ -3,7 +3,7 @@ from collections import namedtuple
 
 from PyQt5 import Qt
 
-from src import Warp, Noise, perlinGenerator
+from nPerlinNoise import Warp, Noise, perlinGenerator
 
 primarySettings = namedtuple("primarySettings", ["seed",
                                                  "frequency",
