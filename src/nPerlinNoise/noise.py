@@ -55,24 +55,12 @@ class Noise(NPerlin):
         self.__lacunarity = self.__getLacunarity(lacunarity)
         super(Noise, self).__init__(*args, **kwargs, fwm=self.__octaves)
 
-    def __call__(self, *coords: Union["collections.Iterable", float], gridMode: bool = False) -> "np.ndarray":
-        """
-        generates noise values for given coordinates by repeated overlap of octaves
-
-        :param coords: single value or iterable of homogeneous-dimensions
-        :param gridMode: compute noise for every combination of coords
-        :return: noise values of iterable shape if gridMode is False, if True shape = (len(c) for c in coords)[::-1]
-        """
-        if gridMode: coords = np.meshgrid(*coords)
-        fCoords, shape = self.formatCoords(coords)
+    def _noise(self, fCoords):
         fCoords = np.concatenate([fCoords] + [fCoords := fCoords * self.__lacunarity for _ in range(1, self.__octaves)],
                                  axis=1)
-        bIndex, rCoords = self.findBounds(fCoords)
-        fab = self.findFab(bIndex)
-        bSpace = fab[tuple(bIndex - bIndex.min((1, 2), keepdims=True))]
-        h = self.bNoise(bSpace.T, rCoords.T).reshape(self.__octaves, -1)
+        h = super(Noise, self)._noise(fCoords).reshape(self.__octaves, -1)
         h *= [[w] for w in self.weight]
-        return self.applyRange(h.sum(axis=0)).reshape(shape)
+        return h.sum(axis=0)
 
     @staticmethod
     def __getOctaves(octaves):

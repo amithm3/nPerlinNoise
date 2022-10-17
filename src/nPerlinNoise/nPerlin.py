@@ -96,7 +96,7 @@ class NPerlin:
         :param waveLength: length of one unit respect to dimension
         :param warp: the interpolation used between random value nodes respect to dimension
         :param _range: bound for noise values, output will be within the give range
-        :param fwm: key word only - frequency, waveLength multiplier
+        :param fwm: key-word only - frequency, waveLength multiplier
         """
         if warp is None: warp = Warp.improved()
         if _range is None: _range = (0, 1)
@@ -113,16 +113,21 @@ class NPerlin:
         generates noise values for given coordinates
 
         :param coords: single value or iterable of homogeneous-dimensions
-        :param gridMode: compute noise for every combination of coords
-        :return: noise values of iterable shape if gridMode is False, if True shape = (len(c) for c in coords)[::-1]
+        :param gridMode: key-word only - compute noise for every combination of coords
+        :return: noise values of iterable shape,<br>
+            if gridMode=True shape is equal to the length(s) of coords in that order
         """
-        if gridMode: coords = np.meshgrid(*coords)
+        if gridMode: coords = np.meshgrid(*coords, indexing='ij')
         fCoords, shape = self.formatCoords(coords)
+        h = self.applyRange(self._noise(fCoords)).reshape(shape)
+        return h if not gridMode and len(shape) >= 2 else h.T
+
+    def _noise(self, fCoords):
         bIndex, bCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
         bIndex = bIndex - bIndex.min((1, 2), keepdims=True)  # relative indexes respect to fab
         bSpace = fab[tuple(bIndex)]
-        return self.applyRange(self.bNoise(bSpace.T, bCoords.T)).reshape(shape)
+        return self.bNoise(bSpace.T, bCoords.T)
 
     def bNoise(self, bSpace, bCoords):
         """

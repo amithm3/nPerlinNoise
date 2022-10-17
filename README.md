@@ -13,9 +13,12 @@
 [![forthebadge](https://forthebadge.com/images/badges/powered-by-coffee.svg)](https://forthebadge.com)
 
 # nPerlinNoise
+
 #### indexed on PyPI - [nPerlinNoise](https://pypi.org/project/nPerlinNoise)
+
 #### repo on GitHub - [nPerlinNoise](https://github.com/Amith225/nPerlinNoise)
-#### docs on ReadTheDocs - [nPerlinNoise]("https://readthedocs.org/")
+
+#### docs on ReadTheDocs - [nPerlinNoise](https://readthedocs.org/)
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 
@@ -30,12 +33,16 @@
 **Details**:
 
 - **Technology stack**:
-  > **Status**: **`v0.1.3-alpha`** Improving docs and API<br>
+  > **Status**: **`v0.1.3-alpha`** improving API, thinking about more docs, unit tests<br>
   > **All Packages**: [releases](https://github.com/Amith225/nPerlinNoise/releases)<br>
   > [CHANGELOG](docs/CHANGELOG.md)<br>
   > ###### _Tested on Python 3.10, Windows 10_
 - **Future work**:
-  > **optimization** for higher dimensions and single value coordinates<br>
+  > **optimization** for octave noise<br>
+  > writing **unit tests**<br>
+  > writing **API docs**<br>
+  > writing **pending docs**<br>
+  > finishing left **in-code docs**<br>
 
 ---
 
@@ -85,7 +92,7 @@ for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
 
 **Basic usage**
 
-Get noise values at given n-dimensional coordinates by calling ```noise()```,<br>
+Get noise values at given n-dimensional coordinates by calling ```noise(...)```,<br>
 coordinates can be single value, or an iterable
 
 - ###### single value
@@ -105,19 +112,19 @@ coordinates can be single value, or an iterable
 - ###### iterable
 
   > noise(...., [l1, l2, ..., lx], [m1, m2, ..., mx], [n1, n2, ..., nx], ....)<br>
-  > where ...., are iterable of homogeneous-dimensions
+  > where ...., are iterable of homogeneous-dimensions and lx, mx, nx, ..., are single values
   > the output will be of same shape of input homogeneous-dimensions
 
   ```pycon
   >>> noise([73, 49])
-  array([0.52071124, 0.6402224], dtype=float32)
+  array([0.52071124, 0.6402224 ], dtype=float32)
   >>> noise([73, 49], [2, 2])
-  array([0.4563121, 0.63378346], dtype=float32)
+  array([0.4563121 , 0.63378346], dtype=float32)
   >>> noise([[73], [49], [0]],
-  ...       [[2], [2], [2]],
-  ...       [[0], [1], [2]])
-  array([[0.4563121],
-         [0.6571784],
+  ...       [[2 ], [2 ], [2]],
+  ...       [[0 ], [1 ], [2]])
+  array([[0.4563121 ],
+         [0.6571784 ],
          [0.16369209]], dtype=float32)
   >>> noise([[1, 2], [2, 3]],
   ...       [[1, 1], [1, 1]],
@@ -143,9 +150,35 @@ coordinates can be single value, or an iterable
   array(0.5207113, dtype=float32)
   ```
 
+grid mode allows for computing noise for every combination of coords<br>
+use `noise(..., gridMode=True)` gridMode is key-word only argument, default=False<br>
+the output will be of shape equal to the length(s) of coords in that order
+
+- ###### gridMode
+  ```pycon
+  >>> noise([73, 49], [2, 2], [0, 1], gridMode=True)
+  array([[[0.4563121 , 0.63378346],
+          [0.4563121 , 0.63378346]],
+  
+         [[0.44594935, 0.6571784 ],
+          [0.44594935, 0.6571784 ]]], dtype=float32)
+  >>> noise([1, 20, 32, 64], [1, 1, 2], 0, [1, 2], gridMode=True)
+  array([[[[0.06459193, 0.5110498 , 0.669962  , 0.47636804],
+           [0.06459193, 0.5110498 , 0.669962  , 0.47636804],
+           [0.09864856, 0.5013973 , 0.62935597, 0.47954425]]],
+  
+  
+         [[[0.07678645, 0.50853723, 0.6778991 , 0.4679888 ],
+           [0.07678645, 0.50853723, 0.6778991 , 0.4679888 ],
+           [0.14069612, 0.47582665, 0.6663638 , 0.48764956]]]],
+        dtype=float32)
+  ```
+
 for detailed usage see [EXAMPLE](scripts/main.py)
 
 ## API
+
+- docs pending
 
 ## How to test the software
 

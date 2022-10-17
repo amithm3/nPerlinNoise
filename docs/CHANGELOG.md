@@ -16,3 +16,15 @@
 ## v0.1.3-alpha1:
 - improved docs, appended usage section
 - renamed import directory `NPerlinNoise` to `nPerlinNoise`
+
+## v0.1.3-alpha[2,3]:
+- docs improved
+- yanked due to wrong link to maintainer
+
+## v0.1.3-alpha4:
+- docs on usage refactored
+- restructured folder tree
+
+## v0.1.3-alpha5:
+- support for grid mode added
+- merged commons from `__call__` of `NPerlin` and `Noise`
