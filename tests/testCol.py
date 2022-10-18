@@ -1,6 +1,6 @@
 from matplotlib import pyplot
 
-from NPerlinNoise import LinearColorGradient, meshgrid
+from nPerlinNoise import LinearColorGradient, meshgrid
 
 grad = LinearColorGradient("#4d8204", "#006994")
 a = meshgrid((0, 128), (0, 128))

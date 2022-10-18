@@ -1,6 +1,6 @@
 import numpy as np
 
-from NPerlinNoise import NPerlin, meshgrid
+from nPerlinNoise import NPerlin, meshgrid
 
 pern = NPerlin(696969, 32)
 

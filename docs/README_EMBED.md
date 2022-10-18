@@ -20,8 +20,6 @@
 
 #### docs on ReadTheDocs - [](https://readthedocs.org/)
 
-## active dev @[v0.1.3-alpha_dev](https://github.com/Amith225/nPerlinNoise/tree/v0.1.3-alpha_dev)
-
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 
 - A _powerful_ and _fast_ API for _n-dimensional_ noise.
@@ -37,7 +35,7 @@
 - **Technology stack**:
   > **Status**: **`v0.1.4-alpha`** focusing on all issues [Getting Involved](#contribute), follows PEP440<br>
   > **All Packages**: [releases](https://github.com/Amith225/nPerlinNoise/releases)<br>
-  > [CHANGELOG](docs/CHANGELOG.md)<br>
+  > [CHANGELOG](https://github.com/Amith225/nPerlinNoise/blob/master/docs/CHANGELOG.md)<br>
   > ###### _Tested on Python 3.10, Windows 10_
 - **Future work**:
   > **optimization** for octave noise<br>
@@ -55,15 +53,15 @@
 
 <div align="center">
 
-![](snaps/img_587383161.png)
-![](snaps/img_1410614909.png)
-![](snaps/img_1742083597.png)
-![](snaps/img_2580891136.png)
-![](snaps/img_3001325707.png)
-![](snaps/img_3403505649.png)
-![](snaps/img_4183221855.png)
-![](snaps/img_4237425687.png)
-![](snaps/img_4246716738.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_587383161.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_1410614909.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_1742083597.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_2580891136.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_3001325707.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_3403505649.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_4183221855.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_4237425687.png)
+![](https://raw.github.com/Amith225/nPerlinNoise/master/snaps/img_4246716738.png)
 
 </div>
 
@@ -73,8 +71,8 @@
 
 - `Python>=3.10.0`
 
-for production dependencies see [Requirements](requirements/requirements.txt)<br>
-for development dependencies see [Dev-Requirements](requirements/dev_requirements.txt)
+for production dependencies see [Requirements](https://raw.github.com/Amith225/nPerlinNoise/master/requirements/requirements.txt)<br>
+for development dependencies see [Dev-Requirements](https://raw.github.com/Amith225/nPerlinNoise/master/requirements/dev_requirements.txt)
 
 ## Installation
 
@@ -82,7 +80,7 @@ for development dependencies see [Dev-Requirements](requirements/dev_requirement
 $ pip install nPerlinNoise
 ```
 
-for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
+for detailed instruction on installation see [INSTALLATION](https://github.com/Amith225/nPerlinNoise/blob/master/docs/INSTALL.md).
 
 <a id="usage"></a>
 
@@ -179,7 +177,7 @@ the output will be of shape equal to the length(s) of coords in that order
         dtype=float32)
   ```
 
-for detailed usage see [EXAMPLE](scripts/main.py)
+for detailed usage see [EXAMPLE](https://github.com/Amith225/nPerlinNoise/blob/master/scripts/main.py)
 
 ## API
 
@@ -187,12 +185,12 @@ for detailed usage see [EXAMPLE](scripts/main.py)
 
 ## How to test the software
 
-- To test Logical consistency run [testLogic](tests/testLogic.py)
-- To test Profile Benchmarking run [testProfile](tests/testProfile.py)
-- To test Visuals run [testVisuals](tests/testVisuals.py)
-- To test Colors run [testCol](tests/testCol.py)
+- To test Logical consistency run [testLogic](https://github.com/Amith225/nPerlinNoise/blob/master/tests/testLogic.py)
+- To test Profile Benchmarking run [testProfile](https://github.com/Amith225/nPerlinNoise/blob/master/tests/testProfile.py)
+- To test Visuals run [testVisuals](https://github.com/Amith225/nPerlinNoise/blob/master/tests/testVisuals.py)
+- To test Colors run [testCol](https://github.com/Amith225/nPerlinNoise/blob/master/tests/testCol.py)
 
-to see all tests see [Tests](tests)
+to see all tests see [Tests](https://github.com/Amith225/nPerlinNoise/blob/master/tests)
 
 ## Known issues
 
@@ -202,8 +200,8 @@ to see all tests see [Tests](tests)
 
 ## Getting help
 
-- Check [main.py](scripts/main.py) for detailed usage
-- Check [docs](docs) for all documentations
+- Check [main.py](https://github.com/Amith225/nPerlinNoise/blob/master/scripts/main.py) for detailed usage
+- Check [docs](https://github.com/Amith225/nPerlinNoise/blob/master/docs) for all documentations
 - Check [Usage](#usage) Section
 
 If you have questions, concerns, bug reports, etc.
@@ -222,15 +220,15 @@ open a [discussion](https://github.com/Amith225/nPerlinNoise/discussions/7) in t
 - [Fork](https://github.com/Amith225/nPerlinNoise/fork) the repository
   and issue a [PR](https://github.com/Amith225/nPerlinNoise/pulls) to contribute
 
-General instructions on _how_ to contribute [CONTRIBUTING](docs/CONTRIBUTING.md)
-and [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
+General instructions on _how_ to contribute [CONTRIBUTING](https://github.com/Amith225/nPerlinNoise/blob/master/docs/CONTRIBUTING.md)
+and [CODE OF CONDUCT](https://github.com/Amith225/nPerlinNoise/blob/master/CODE_OF_CONDUCT.md)
 
 ----
 
 ## Open source licensing info
 
-1. [TERMS](docs/TERMS.md)
-2. [LICENSE](LICENSE)
+1. [TERMS](https://github.com/Amith225/nPerlinNoise/blob/master/docs/TERMS.md)
+2. [LICENSE](https://github.com/Amith225/nPerlinNoise/blob/master/LICENSE)
 3. [CFPB Source Code Policy](https://github.com/cfpb/source-code-policy/)
 
 ----
@@ -240,8 +238,8 @@ and [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
 1. Inspired from [The Coding Train](https://www.youtube.com/channel/UCvjgXvBlbQiydffZU7m1_aw)
    -> [perlin noise](https://thecodingtrain.com/challenges/24-perlin-noise-flow-field)
 2. hash function by [xxhash](https://github.com/Cyan4973/xxHash)
-   inspired the [rand3](src/nPerlinNoise/tools.py) algo
-   and ultimately helped for O(1) time complexity n-dimensional random generator [NPrng](src/nPerlinNoise/tools.py)
+   inspired the [rand3](https://github.com/Amith225/nPerlinNoise/blob/master/src/nPerlinNoise/tools.py) algo
+   and ultimately helped for O(1) time complexity n-dimensional random generator [NPrng](https://github.com/Amith225/nPerlinNoise/blob/master/src/nPerlinNoise/tools.py)
 3. [StackOverflow](https://stackoverflow.com/) for helping on various occasions throughout the development
 4. [vnoise](https://github.com/plottertools/vnoise) and [opensimplex](https://github.com/lmas/opensimplex)
    for ideas for README.md

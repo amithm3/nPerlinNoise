@@ -1,6 +1,3 @@
-import collections
-from typing import Union
-
 import numpy as np
 
 from .nPerlin import NPerlin
@@ -32,7 +29,7 @@ class Noise(NPerlin):
     def __repr__(self):
         return super(Noise, self).__repr__()[:-1] + f' oct={self.octaves} per={self.persistence} lac={self.lacunarity}>'
 
-    # todo: docs
+    # multiplier for octave layers, .i.e weightage of each overlapping waves in final output
     @property
     def weight(self):
         hmax = \
@@ -40,7 +37,7 @@ class Noise(NPerlin):
         return [self.persistence ** i / hmax for i in range(self.octaves)]
 
     def __init__(self, *args,
-                 octaves: int = 8,  # todo: diff octaves for diff dims
+                 octaves: int = 8,
                  persistence: float = 0.5,
                  lacunarity: float = 2.0,
                  **kwargs):
@@ -55,21 +52,12 @@ class Noise(NPerlin):
         self.__lacunarity = self.__getLacunarity(lacunarity)
         super(Noise, self).__init__(*args, **kwargs, fwm=self.__octaves)
 
-    def __call__(self, *coords: Union["collections.Iterable", float]) -> "np.ndarray":
-        """
-        todo: docs
-        :param coords:
-        :return:
-        """
-        fCoords, shape = self.formatCoords(coords)
+    def _noise(self, fCoords):
         fCoords = np.concatenate([fCoords] + [fCoords := fCoords * self.__lacunarity for _ in range(1, self.__octaves)],
                                  axis=1)
-        bIndex, rCoords = self.findBounds(fCoords)
-        fab = self.findFab(bIndex)
-        bSpace = fab[tuple(bIndex - bIndex.min((1, 2), keepdims=True))]
-        h = self.bNoise(bSpace.T, rCoords.T).reshape(self.__octaves, -1)
+        h = super(Noise, self)._noise(fCoords).reshape(self.__octaves, -1)
         h *= [[w] for w in self.weight]
-        return self.applyRange(h.sum(axis=0)).reshape(shape)
+        return h.sum(axis=0)
 
     @staticmethod
     def __getOctaves(octaves):

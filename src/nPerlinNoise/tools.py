@@ -25,7 +25,7 @@ def findCorners(dim):
         return corners
 
 
-# todo: docs
+# gets fast hash from 3 inputs
 def rand3(X, Y, z) -> 'np.ndarray':
     # mix around the bits in X
     x = X * 3266489917 + 374761393
@@ -49,7 +49,7 @@ def rand3(X, Y, z) -> 'np.ndarray':
 
 class NPrng:
     """
-    todo: docs
+    n-dimensional pseudo random number generator
     """
     __m = np.uint32(2 ** 32 - 1)
 

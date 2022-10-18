@@ -1,8 +1,8 @@
-# todo: versions auto [in package.json, __init__.py, pyproject.toml, README.md]
-# todo: usage and main.py
-# todo: PyPI link in README.md
+# main.py
 
-from NPerlinNoise import *
+# todo: auto bump versions in [package.json, __init__.py, pyproject.toml, README.md]
+
+from nPerlinNoise import *
 
 noise = Noise(
     seed=None,
@@ -18,21 +18,26 @@ noise = Noise(
 
 def main():
     plot = 1
-    mul, res = 1, 4
+    mul, res = 1, 2
     colorMap = (
-        "#00f",
-        "#0f0",
-        "#f00",
+        "#000",
+        "#b7410e",
     )
-    gradients = Gradient.none()
-    colorGradient = LinearColorGradient(*colorMap, grad='s').earth(grad='i') or LinearColorGradient.none()
+    gradients = Gradient.scope()
+    colorGradient = LinearColorGradient(*colorMap, grad='s') and LinearColorGradient.earth(grad='s')
     h, coordsMesh = perlinGenerator(noise,
                                     (0, noise.waveLength[0] * mul, noise.waveLength[0] * res),
-                                    (0, noise.waveLength[1] * mul, noise.waveLength[0] * res))
-    g = applyGrads(h, coordsMesh, gradients)
+                                    (0, noise.waveLength[1] * mul, noise.waveLength[1] * res),
+                                    # (0, noise.waveLength[2] * mul, 3),
+                                    )
+    g = applyGrads(h, gradients)
     c = colorGradient(g)
+    # c = g
 
-    if plot == 1:
+    if plot == -1:
+        from matplotlib import image
+        image.imsave(f'snaps/img_{noise.seed}.png', c)
+    elif plot == 1:
         from matplotlib import pyplot
         # ---matplotlib---
         fig, ax = pyplot.subplots()

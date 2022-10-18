@@ -14,8 +14,9 @@ rangeHint = tuple[float, float]
 
 class NPerlin:
     """
-    todo: docs
+    classic perlin noise
     """
+
     @property
     def seed(self) -> int:
         return self.__prng.seed()
@@ -90,13 +91,12 @@ class NPerlin:
                  *,
                  fwm: int = 1):
         """
-        todo: docs
         :param seed: seed for prng values
         :param frequency: number of random values in one unit respect to dimension
         :param waveLength: length of one unit respect to dimension
-        :param warp: the interpolation function used between random value nodes
+        :param warp: the interpolation used between random value nodes respect to dimension
         :param _range: bound for noise values, output will be within the give range
-        :param fwm: key word only - frequency, waveLength multiplier
+        :param fwm: key-word only - frequency, waveLength multiplier
         """
         if warp is None: warp = Warp.improved()
         if _range is None: _range = (0, 1)
@@ -108,33 +108,49 @@ class NPerlin:
         self.__range = self.__getRange(_range)
         self.__fwm = self.__getFwm(fwm)
 
-    def __call__(self, *coords: Union["collections.Iterable", float]) -> "np.ndarray":
+    def __call__(self, *coords: Union["collections.Iterable", float], gridMode: bool = False) -> "np.ndarray":
         """
-        todo: docs
-        :param coords:
-        :return:
-        """
-        fCoords, shape = self.formatCoords(coords)
-        bIndex, rCoords = self.findBounds(fCoords)
-        fab = self.findFab(bIndex)
-        bIndex = bIndex - bIndex.min((1, 2), keepdims=True)
-        bSpace = fab[tuple(bIndex)]
-        return self.applyRange(self.bNoise(bSpace.T, rCoords.T)).reshape(shape)
+        generates noise values for given coordinates
 
-    def bNoise(self, bSpace, rCoords):
+        :param coords: single value or iterable of homogeneous-dimensions
+        :param gridMode: key-word only - compute noise for every combination of coords
+        :return: noise values of iterable shape,<br>
+            if gridMode=True shape is equal to the length(s) of coords in that order
         """
-        todo: docs
-        :param bSpace:
-        :param rCoords:
-        :return:
+        if gridMode: coords = np.meshgrid(*coords, indexing='ij')
+        fCoords, shape = self.formatCoords(coords)
+        h = self.applyRange(self._noise(fCoords)).reshape(shape)
+        return h if not gridMode and len(shape) >= 2 else h.T
+
+    def _noise(self, fCoords: 'np.ndarray[np.float32]'):
         """
-        dims = rCoords.shape[1]
+        caller noise method, generates noise values for given formatted coordinates,
+        calculates bSpace & bCoords and calls _bNoise
+
+        :param fCoords: formatted coordinates
+        :return: noise values
+        """
+        bIndex, bCoords = self.findBounds(fCoords)
+        fab = self.findFab(bIndex)
+        bIndex = bIndex - bIndex.min((1, 2), keepdims=True)  # relative indexes respect to fab
+        bSpace = fab[tuple(bIndex)]
+        return self._bNoise(bSpace.T, bCoords.T)
+
+    def _bNoise(self, bSpace: 'np.ndarray', bCoords: 'np.ndarray[np.float32]'):
+        """
+        worker noise method, generates noise values based on given bounding space and coordinates
+
+        :param bSpace: fabric of bounding index
+        :param bCoords: bounding coordinates
+        :return: noise values
+        """
+        dims = bCoords.shape[1]
         pairs = bSpace.reshape(-1, 2)
         # collapse dimensions
         for d in range(dims - 1, 0, -1):
-            coords = rCoords[:, d].repeat(2 ** d)
+            coords = bCoords[:, d].repeat(2 ** d)
             pairs = self.__interpolation(pairs, coords, d).reshape(-1, 2)
-        return self.__interpolation(pairs, rCoords[:, 0], 0)
+        return self.__interpolation(pairs, bCoords[:, 0], 0)
 
     def __interpolation(self, pairs, coords, d):
         """
@@ -148,19 +164,20 @@ class NPerlin:
         return self.__warp[d](coords) * heightStretch + pairs[:, 0]
 
     # bottleneck: takes a lot of time for higher dims
-    def findBounds(self, fCoords):
+    def findBounds(self, fCoords: 'np.ndarray[np.float32]') -> tuple['np.ndarray', 'np.ndarray[np.float32]']:
         """
-        todo: docs
-        :param fCoords:
-        :return:
+        finds the bounding index and coordinates for given formatted coordinates
+
+        :param fCoords: formatted coordinates
+        :return: cartesian indexes, relative unitized coordinates
         """
         bCoords = (fCoords * [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
-        rCoords = bCoords - lowerIndex  # relative unitized coords [0, 1]
+        bCoords = bCoords - lowerIndex  # relative unitized coords [0, 1]
         # bounding box indexes for the coords
         bIndex = (lowerIndex + np.array(findCorners(len(bCoords)))[..., None]).transpose((1, 0, 2))
         bIndex %= [[[f]] for f in self.mFrequency[:len(bIndex)]]  # wrapping indices under the valid range
-        return bIndex[::-1], rCoords
+        return bIndex[::-1], bCoords
 
     def findFab(self, bIndex: "np.ndarray") -> "np.ndarray":
         """
@@ -175,7 +192,7 @@ class NPerlin:
     def applyRange(self, noise: "np.ndarray") -> "np.ndarray":
         """
         maps noise values from [min(noise), max(noise)] -> [range[0], range[1]]
-        :param noise: the output values from bNoise
+        :param noise: the output values from _bNoise
         :return: mapped noise values
         """
         return noise * (self.range[1] - self.range[0]) + self.range[0]
