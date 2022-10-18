@@ -18,7 +18,7 @@
 
 #### repo on GitHub - [nPerlinNoise](https://github.com/Amith225/nPerlinNoise)
 
-#### docs on ReadTheDocs - [nPerlinNoise](https://readthedocs.org/)
+#### docs on ReadTheDocs - [](https://readthedocs.org/)
 
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 
@@ -33,7 +33,7 @@
 **Details**:
 
 - **Technology stack**:
-  > **Status**: **`v0.1.3-alpha`** improving API, thinking about more docs, unit tests<br>
+  > **Status**: **`v0.1.4-alpha`** focusing on all issues [Getting Involved](#contribute), follows PEP440<br>
   > **All Packages**: [releases](https://github.com/Amith225/nPerlinNoise/releases)<br>
   > [CHANGELOG](docs/CHANGELOG.md)<br>
   > ###### _Tested on Python 3.10, Windows 10_
@@ -42,7 +42,10 @@
   > writing **unit tests**<br>
   > writing **API docs**<br>
   > writing **pending docs**<br>
+  > writing **ReadTheDocs**<br>
+  > **blogging**<br>
   > finishing left **in-code docs**<br>
+  > dimensional **octaves**<br>
 
 ---
 
@@ -207,10 +210,13 @@ open a [discussion](https://github.com/Amith225/nPerlinNoise/discussions/7) in t
 
 ## Getting involved
 
-- `Looking for Contributors for WebApps`
-- `Looking for Contributors for Documentation`
+<a id="contribute"></a>
 - `Looking for Contributors for feature additions`
-- `Looking for Contributors for optimization`
+- `Looking for Contributors for optimization` [#11](https://github.com/Amith225/nPerlinNoise/issues/11)
+- `Looking for Contributors for unit testing` [#12](https://github.com/Amith225/nPerlinNoise/issues/12)
+- `Looking for Contributors for ReadTheDocs` [#13](https://github.com/Amith225/nPerlinNoise/issues/13)
+- `Looking for Contributors for WebApp` [#14](https://github.com/Amith225/nPerlinNoise/issues/14) 
+- `Looking for Contributors for API docs` [#15](https://github.com/Amith225/nPerlinNoise/issues/15) 
 - [Fork](https://github.com/Amith225/nPerlinNoise/fork) the repository
   and issue a [PR](https://github.com/Amith225/nPerlinNoise/pulls) to contribute
 

@@ -1,6 +1,6 @@
 # main.py
 
-# todo: versions auto in [package.json, __init__.py, pyproject.toml, README.md]
+# todo: auto bump versions in [package.json, __init__.py, pyproject.toml, README.md]
 
 from nPerlinNoise import *
 

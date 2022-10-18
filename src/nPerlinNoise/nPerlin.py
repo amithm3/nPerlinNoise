@@ -122,19 +122,27 @@ class NPerlin:
         h = self.applyRange(self._noise(fCoords)).reshape(shape)
         return h if not gridMode and len(shape) >= 2 else h.T
 
-    def _noise(self, fCoords):
+    def _noise(self, fCoords: 'np.ndarray[np.float32]'):
+        """
+        caller noise method, generates noise values for given formatted coordinates,
+        calculates bSpace & bCoords and calls _bNoise
+
+        :param fCoords: formatted coordinates
+        :return: noise values
+        """
         bIndex, bCoords = self.findBounds(fCoords)
         fab = self.findFab(bIndex)
         bIndex = bIndex - bIndex.min((1, 2), keepdims=True)  # relative indexes respect to fab
         bSpace = fab[tuple(bIndex)]
-        return self.bNoise(bSpace.T, bCoords.T)
+        return self._bNoise(bSpace.T, bCoords.T)
 
-    def bNoise(self, bSpace, bCoords):
+    def _bNoise(self, bSpace: 'np.ndarray', bCoords: 'np.ndarray[np.float32]'):
         """
-        todo: docs
-        :param bSpace:
-        :param bCoords:
-        :return:
+        worker noise method, generates noise values based on given bounding space and coordinates
+
+        :param bSpace: fabric of bounding index
+        :param bCoords: bounding coordinates
+        :return: noise values
         """
         dims = bCoords.shape[1]
         pairs = bSpace.reshape(-1, 2)
@@ -156,11 +164,12 @@ class NPerlin:
         return self.__warp[d](coords) * heightStretch + pairs[:, 0]
 
     # bottleneck: takes a lot of time for higher dims
-    def findBounds(self, fCoords):
+    def findBounds(self, fCoords: 'np.ndarray[np.float32]') -> tuple['np.ndarray', 'np.ndarray[np.float32]']:
         """
-        todo: docs
-        :param fCoords:
-        :return:
+        finds the bounding index and coordinates for given formatted coordinates
+
+        :param fCoords: formatted coordinates
+        :return: cartesian indexes, relative unitized coordinates
         """
         bCoords = (fCoords * [[a] for a in self.amp[:len(fCoords)]]).astype(np.float32)  # unitized coords
         lowerIndex = np.floor(bCoords).astype(np.uint16)
@@ -183,7 +192,7 @@ class NPerlin:
     def applyRange(self, noise: "np.ndarray") -> "np.ndarray":
         """
         maps noise values from [min(noise), max(noise)] -> [range[0], range[1]]
-        :param noise: the output values from bNoise
+        :param noise: the output values from _bNoise
         :return: mapped noise values
         """
         return noise * (self.range[1] - self.range[0]) + self.range[0]

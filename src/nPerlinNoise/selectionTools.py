@@ -17,7 +17,7 @@ except ImportError:
 
 class Warp:
     """
-    todo: docs
+    selection tool for warp(interpolation)
     """
 
     def __repr__(self):
@@ -60,7 +60,7 @@ class Warp:
 
 class Gradient:
     """
-    todo: docs
+    selection tool for manipulating matrix respect to values and coords
     """
 
     def __repr__(self):
@@ -72,6 +72,14 @@ class Gradient:
 
     def __call__(self, a: 'np.ndarray'):
         return self.__foo(a)
+
+    @classmethod
+    def none(cls) -> "Gradient":
+        return cls(lambda a: a, "None")
+
+    @classmethod
+    def invert(cls) -> "Gradient":
+        return cls(lambda a: a.max() - a, "Invert")
 
     @classmethod
     def woodSpread(cls, n=1) -> "Gradient":
@@ -100,6 +108,32 @@ class Gradient:
         return cls(lambda a: gradient(a), "Ply")
 
     @classmethod
+    def marbleFractal(cls, n=0.5) -> "Gradient":
+        return cls(
+            lambda a: (np.sin(np.sum(np.mgrid[tuple(slice(0, s, 1.) for s in a.shape)], axis=0) * a * n) + 1) / 2,
+            "MarbleSpread"
+        )
+
+    @classmethod
+    def marble(cls, n=.5, m=32) -> "Gradient":
+        return cls(
+            lambda a: (np.sin((np.sum(np.mgrid[tuple(slice(0, s, 1.) for s in a.shape)], axis=0) + a * m) * n) + 1) / 2,
+            "Marble"
+        )
+
+    @classmethod
+    def scope(cls, m=2) -> "Gradient":
+        def gradient(a):
+            cm = np.mgrid[tuple(slice(0, s, 1.) for s in a.shape)]
+            cm -= (_max := cm.max(tuple(range(1, a.ndim + 1)), keepdims=True)) / 2
+            cm *= 2
+            cm /= _max
+            cmm = (cm ** 2).sum(0) / len(cm)
+            return a * (1 - cmm) ** m
+
+        return cls(lambda a: gradient(a), "Scope")
+
+    @classmethod
     def terrace(cls, n=8) -> "Gradient":
         return cls(lambda a: np.int8(n * a) / n, "Terrace")
 
@@ -122,40 +156,6 @@ class Gradient:
             return a
 
         return cls(lambda a: gradient(scope(a)), "Island")
-
-    @classmethod
-    def marbleFractal(cls, n=0.5) -> "Gradient":
-        return cls(
-            lambda a: (np.sin(np.sum(np.mgrid[tuple(slice(0, s, 1.) for s in a.shape)], axis=0) * a * n) + 1) / 2,
-            "MarbleSpread"
-        )
-
-    @classmethod
-    def marble(cls, n=.5, m=32) -> "Gradient":
-        return cls(
-            lambda a: (np.sin((np.sum(np.mgrid[tuple(slice(0, s, 1.) for s in a.shape)], axis=0) + a * m) * n) + 1) / 2,
-            "Marble"
-        )
-
-    @classmethod
-    def invert(cls) -> "Gradient":
-        return cls(lambda a: a.max() - a, "Invert")
-
-    @classmethod
-    def scope(cls, m=2) -> "Gradient":
-        def gradient(a):
-            cm = np.mgrid[tuple(slice(0, s, 1.) for s in a.shape)]
-            cm -= (_max := cm.max(tuple(range(1, a.ndim + 1)), keepdims=True)) / 2
-            cm *= 2
-            cm /= _max
-            cmm = (cm ** 2).sum(0) / len(cm)
-            return a * (1 - cmm) ** m
-
-        return cls(lambda a: gradient(a), "Scope")
-
-    @classmethod
-    def none(cls) -> "Gradient":
-        return cls(lambda a: a, "None")
 
 
 def hexToRGB(cols) -> "np.ndarray[np.ndarray]":
@@ -180,12 +180,21 @@ def rgbToHex(cols) -> list[str]:
 
 
 class LinearColorGradient:
+    """
+    todo: docs
+    """
+
     def __init__(self, *cols: str, grad: str = 'i'):
         self.cols = hexToRGB(cols)
         if len(self.cols) == 1: self.cols = np.array([self.cols[0], 255 - self.cols[0]])
         self.grad = grad
 
     def sGradient(self, a):
+        """
+        todo: docs
+        :param a:
+        :return:
+        """
         a = np.array(a)
         s = a.flatten()
         _as = s.argsort()
@@ -204,6 +213,11 @@ class LinearColorGradient:
         return x.reshape(*a.shape, -1).astype(np.uint8)
 
     def iGradient(self, a):
+        """
+        todo: docs
+        :param a:
+        :return:
+        """
         a = np.array(a)
         _range = a.min(d := tuple(range(a.ndim))), a.max(d)
         a = (a - _range[0]) / (_range[1] - _range[0]) * (len(self.cols) - 1)
@@ -224,15 +238,10 @@ class LinearColorGradient:
     @classmethod
     def earth(cls, **kwargs):
         return cls(
-            "#003366",
-            "#006994",
-            "#f6d7b0",
-            "#1f6d04",
-            "#6b9b1e",
-            "#8dbf39",
-            "#b9d980",
-            "#977c53",
-            "#fff",
+            "#003366", "#006994",  # sea
+            "#f6d7b0",  # sand
+            "#1f6d04", "#6b9b1e", "#8dbf39", "#b9d980",  # vegetation
+            "#977c53", "#fff",  # mountain
             **kwargs
         )
 

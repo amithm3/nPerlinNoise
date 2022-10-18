@@ -1,6 +1,3 @@
-import collections
-from typing import Union
-
 import numpy as np
 
 from .nPerlin import NPerlin
@@ -32,7 +29,7 @@ class Noise(NPerlin):
     def __repr__(self):
         return super(Noise, self).__repr__()[:-1] + f' oct={self.octaves} per={self.persistence} lac={self.lacunarity}>'
 
-    # todo: docs
+    # multiplier for octave layers, .i.e weightage of each overlapping waves in final output
     @property
     def weight(self):
         hmax = \
@@ -40,7 +37,7 @@ class Noise(NPerlin):
         return [self.persistence ** i / hmax for i in range(self.octaves)]
 
     def __init__(self, *args,
-                 octaves: int = 8,  # todo: diff octaves for diff dims
+                 octaves: int = 8,
                  persistence: float = 0.5,
                  lacunarity: float = 2.0,
                  **kwargs):

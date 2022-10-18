@@ -28,3 +28,8 @@
 ## v0.1.3-alpha5:
 - support for grid mode added
 - merged commons from `__call__` of `NPerlin` and `Noise`
+
+## v0.1.4-alpha0:
+- deprecated mesh grid in gradients, now `cm` is calculated auto
+- more `in-code` docs added
+- `PEP440` convention will be followed from the release
