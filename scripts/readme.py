@@ -9,7 +9,7 @@ def findOpenClose(string, char: tuple[str, str]):
 
 
 def embed_link(link):
-    ignore = ["#usage"]
+    ignore = ["#usage", "#contribute"]
     raw = ['.png', '.txt']
     branch = 'master'
     base_raw = f'https://raw.github.com/Amith225/nPerlinNoise/{branch}/'

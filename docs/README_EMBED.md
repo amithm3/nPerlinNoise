@@ -33,7 +33,7 @@
 **Details**:
 
 - **Technology stack**:
-  > **Status**: **`v0.1.4-alpha`** focusing on all issues [Getting Involved](https://github.com/Amith225/nPerlinNoise/blob/master/#contribute), follows PEP440<br>
+  > **Status**: **`v0.1.4-alpha`** focusing on all issues [Getting Involved](#contribute), follows PEP440<br>
   > **All Packages**: [releases](https://github.com/Amith225/nPerlinNoise/releases)<br>
   > [CHANGELOG](https://github.com/Amith225/nPerlinNoise/blob/master/docs/CHANGELOG.md)<br>
   > ###### _Tested on Python 3.10, Windows 10_
