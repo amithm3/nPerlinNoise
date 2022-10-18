@@ -62,6 +62,7 @@
 ![](snaps/img_4183221855.png)
 ![](snaps/img_4237425687.png)
 ![](snaps/img_4246716738.png)
+![example2](https://user-images.githubusercontent.com/75326634/196452679-7bcf8b50-357d-409f-9485-8b9fdffd86f0.gif)
 
 </div>
 
