@@ -20,8 +20,6 @@
 
 #### docs on ReadTheDocs - [](https://readthedocs.org/)
 
-## active dev @[v0.1.3-alpha_dev](https://github.com/Amith225/nPerlinNoise/tree/v0.1.3-alpha_dev)
-
 ### A robust open source implementation of Perlin Noise Algorithm for N-Dimensions in Python.
 
 - A _powerful_ and _fast_ API for _n-dimensional_ noise.
