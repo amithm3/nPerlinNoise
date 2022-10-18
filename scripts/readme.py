@@ -11,7 +11,7 @@ def findOpenClose(string, char: tuple[str, str]):
 def embed_link(link):
     ignore = ["#usage"]
     raw = ['.png', '.txt']
-    branch = 'v0.1.3-alpha_dev'
+    branch = 'master'
     base_raw = f'https://raw.github.com/Amith225/nPerlinNoise/{branch}/'
     base = f'https://github.com/Amith225/nPerlinNoise/blob/{branch}/'
     if not link.startswith('http') and link not in ignore:
