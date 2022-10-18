@@ -24,13 +24,13 @@ def main():
         "#b7410e",
     )
     gradients = Gradient.scope()
-    colorGradient = LinearColorGradient(*colorMap, grad='s') and LinearColorGradient.sun(grad='s')
+    colorGradient = LinearColorGradient(*colorMap, grad='s') and LinearColorGradient.earth(grad='s')
     h, coordsMesh = perlinGenerator(noise,
                                     (0, noise.waveLength[0] * mul, noise.waveLength[0] * res),
                                     (0, noise.waveLength[1] * mul, noise.waveLength[1] * res),
                                     # (0, noise.waveLength[2] * mul, 3),
                                     )
-    g = applyGrads(h, coordsMesh, gradients)
+    g = applyGrads(h, gradients)
     c = colorGradient(g)
     # c = g
 

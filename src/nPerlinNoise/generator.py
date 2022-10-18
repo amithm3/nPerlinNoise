@@ -29,19 +29,16 @@ def meshgrid(*ls: lineSpaceHint) -> "np.ndarray":
     return a.transpose(0, *range(1, a.ndim))[::-1]
 
 
-# todo: deprecate coordsMesh
 def applyGrads(h: 'np.ndarray',
-               coordsMesh: 'np.ndarray',
                gradients: Union[tuple["Gradient", ...], "Gradient"] = None) -> 'np.ndarray':
     """
     :param h: noise values
-    :param coordsMesh: meshgrid of h
     :param gradients: gradient to be applied to h respect to dimension
     :return: gradient noise
     """
     if gradients is None: gradients = ()
     if not iterable(gradients): gradients = (gradients,)
-    for g in gradients: h = g(h, coordsMesh)
+    for g in gradients: h = g(h)
     return h
 
 
