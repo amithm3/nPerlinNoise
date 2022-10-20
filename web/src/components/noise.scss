@@ -1,0 +1,49 @@
+.noise {
+  background: #fcfcfc;
+  .noise-btn {
+    width: 400px;
+  }
+  .form {
+    padding: 10px;
+
+    font-weight: bold;
+    color: #333;
+    display: flex;
+    align-content: center;
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    flex-direction: column;
+
+    .label {
+      color: black;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: row-reverse;
+      justify-content: space-between;
+    }
+
+    .input {
+      width: 400px;
+      color: #fcfcfc;
+
+      height: 15px;
+      background: rgb(17, 16, 16);
+      outline: none;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: inset 0 0 5px rgba(0, 0, 0, 1);
+    }
+    .input::-webkit-slider-thumb {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #dbf1dc;
+      cursor: pointer;
+      border: 4px solid #333;
+      box-shadow: -407px 0 0 400px #8e908e;
+    }
+  }
+}
