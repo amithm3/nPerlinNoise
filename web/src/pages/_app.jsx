@@ -66,6 +66,12 @@ export default function App({ Component, pageProps }) {
       <Head>
         <title>{pageTitle}</title>
         {description && <meta name="description" content={description} />}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="keywords"
+          content="nPerlinNoise, perlin noise python, noise generation, procedural generation, n-dimensional noise, perlin noise algorithm, perlin noise library, generate noise, random noise generation, open source perlin noise python, procedural terrain generation with perlin noise, python noise generation, generating textures with perlin noise, game terrain perlin noise, PRNG generator, n-dimensional PRNG, gradient noise, perlin noise python, perlin noise implementation, multi-dimensional perlin noise, generative art perlin noise, procedural content generation, open source noise library, texture synthesis perlin noise, simplex noise, value noise, coherent noise, pseudorandom noise, fractal noise, spatial coherence, animate noise, warp noise, smooth noise, seamless noise, tileable noise, octaves noise, fractal brownian motion, diamond-square algorithm, ocean waves noise, lava texture noise,wood texture noise,marble texture noise,colormap noise,gradient map noise,flow noise,curl noise,divergence noise,vector noise,scalar noise,gradient descent noise,cellular noise,worley noise,radial basis functions,noise periods,anisotropic noise,isotropic noise,heterogeneous noise,homogeneous noise,stationary noise,non-stationary noise,ergodic noise,non-ergodic noise,stochastic noise,deterministic noise,band-limited noise,blue noise,pink noise,brown noise,white noise,gaussian noise,poisson noise,uniform noise,sparse noise,dense noise,point noise,solid noise,gas noise,plasma noise,fluid noise,fractal noise dimension"
+        />
+        <meta name="author" content="Amith M" />
       </Head>
       <Layout title={title} tableOfContents={tableOfContents}>
         <Component {...pageProps} />

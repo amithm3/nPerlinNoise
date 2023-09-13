@@ -1,7 +1,7 @@
 ---
 title: Getting started
-pageTitle: nPerlinNoise - A robust open source implementation of Perlin Noise Algorithm for N-Dimensions.
-description: A robust open source implementation of Perlin Noise Algorithm for N-Dimensions.
+pageTitle: nPerlinNoise - Open Source Perlin Noise Generation for Python.
+description: nPerlinNoise is an open source Python library for generating Perlin noise for procedural generation and generative art. It provides n-dimensional coherent noise with customizable frequency, wavelength, warp, range, octaves, persistence, and lacunarity.
 ---
 
 Learn how to use nPerlinNoise {% .lead %}
