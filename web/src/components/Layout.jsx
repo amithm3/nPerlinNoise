@@ -39,7 +39,7 @@ function Example() {
   return (
     <div className="rounded-xl bg-[#020617cd]">
       <div className="mx-auto max-w-7xl py-12 px-6 lg:px-8 lg:py-24">
-        <div className="space-y-12 lg:grid lg:grid-cols-3 lg:gap-8 lg:space-y-0">
+        <div className="space-y-12 lg:grid lg:grid-cols-2 lg:gap-8 lg:space-y-0">
           <div className="space-y-5 sm:space-y-4">
             <h2 className="text-2xl font-bold tracking-tight text-slate-100 sm:text-3xl">
               Maintainer
@@ -58,14 +58,7 @@ function Example() {
             >
               {people.map((person) => (
                 <li key={person.name} className="sm:py-8">
-                  <div className="space-y-4 sm:grid sm:grid-cols-3 sm:items-start sm:gap-6 sm:space-y-0">
-                    <div className="aspect-w-3 aspect-h-2 sm:aspect-w-3 sm:aspect-h-4">
-                      <Image
-                        className="rounded-lg object-cover shadow-lg"
-                        src={devImage}
-                        alt=""
-                      />
-                    </div>
+                  <div className="space-y-4 sm:grid sm:grid-cols-2 sm:items-start sm:gap-6 sm:space-y-0">
                     <div className="sm:col-span-2">
                       <div className="space-y-4">
                         <div className="space-y-2 text-lg font-medium leading-6 text-white">
