@@ -250,6 +250,13 @@ and [CODE OF CONDUCT](CODE_OF_CONDUCT.md)
 **Maintainer**:
 
 |        <a href="https://github.com/Amith225"><img src="https://avatars.githubusercontent.com/u/75326634?v=4" height=250></a>        |
-|:-----------------------------------------------------------------------------------------------------------------------------------:|
+| :---------------------------------------------------------------------------------------------------------------------------------: |
 |                                    **[Amith M](https://www.linkedin.com/in/amith-m-17088b246/)**                                    |
 | [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/amithm3 ) |
+
+**Contributors**:
+
+|        <a href="https://myselfshravan.github.io"><img src="https://myselfshravan.github.io/assets/img/profile4.jpg" height=100></a>        |
+| :----------------------------------------------------------------------------------------------------------------------------------------: |
+|                                     **[Shravan Revanna](https://www.linkedin.com/in/shravanrevanna)**                                      |
+| [![Instagram](https://img.shields.io/badge/Instagram-%23E4405F.svg?logo=Instagram&logoColor=white)](https://instagram.com/shravan_revanna) |
