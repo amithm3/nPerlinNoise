@@ -89,6 +89,8 @@ for detailed instruction on installation see [INSTALLATION](docs/INSTALL.md).
 
 **Setup**
 
+### Note: if the package is not being imported, try `import NPerlinNoise as nPN` refer [#24](https://github.com/Amith225/nPerlinNoise/issues/24)
+
 ```pycon
 >>> import nPerlinNoise as nPN
 >>> noise = nPN.Noise(seed=69420)
